@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import api from '../services/api';
 import { 
   LayoutDashboard, 
   Users, 
@@ -9,16 +10,46 @@ import {
   Megaphone, 
   MessageSquareWarning, 
   BarChart3, 
-  LogOut,
   UserCog,
   ClipboardList,
   User,
   Hotel,
-  CalendarDays
+  CalendarDays,
+  Fingerprint
 } from 'lucide-react';
 
 const Sidebar = () => {
-  const { user, logout, hasRole } = useAuth();
+  const { hasRole, user } = useAuth();
+  const [pendingCount, setPendingCount] = useState(0);
+
+  const fetchPendingCount = async () => {
+    try {
+      if (!user) return;
+      const res = await api.get('/api/leaves/pending-count');
+      console.log("[DEBUG] Sidebar fetched pending count:", res.data);
+      setPendingCount(res.data.count || 0);
+    } catch (err) {
+      console.error("Failed to fetch pending leave count:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchPendingCount();
+
+    // Poll every 10 seconds to catch new requests coming from others
+    const interval = setInterval(fetchPendingCount, 10000);
+
+    // Listen for custom event when leave requests are applied/approved locally
+    const handleStatusChange = () => {
+      fetchPendingCount();
+    };
+    document.addEventListener('leaveStatusChanged', handleStatusChange);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('leaveStatusChanged', handleStatusChange);
+    };
+  }, [user]);
 
   const links = [
     { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['ROLE_ADMIN', 'ROLE_STAFF', 'ROLE_FACULTY', 'ROLE_STUDENT'] },
@@ -29,9 +60,9 @@ const Sidebar = () => {
     { to: '/complaints', label: 'Complaints / Tickets', icon: MessageSquareWarning, roles: ['ROLE_ADMIN', 'ROLE_STAFF', 'ROLE_STUDENT'] },
     {to: '/hostels', label: 'Hostel Management', icon: Hotel, roles: ['ROLE_ADMIN', 'ROLE_STAFF', 'ROLE_STUDENT']},
     {to: '/calendar', label: 'Academic Calendar', icon: CalendarDays, roles: ['ROLE_ADMIN', 'ROLE_STAFF', 'ROLE_FACULTY', 'ROLE_STUDENT']},
+    {to: '/attendance', label: 'Attendance', icon: Fingerprint, roles: ['ROLE_ADMIN', 'ROLE_STAFF', 'ROLE_FACULTY']},
     {to: '/users', label: 'User Management', icon: UserCog, roles: ['ROLE_ADMIN']},
     { to: '/logs', label: 'Activity Logs', icon: ClipboardList, roles: ['ROLE_ADMIN'] },
-    { to: '/profile', label: 'My Profile', icon: User, roles: ['ROLE_ADMIN', 'ROLE_STAFF', 'ROLE_FACULTY', 'ROLE_STUDENT'] },
     { to: '/reports', label: 'Reports & Analytics', icon: BarChart3, roles: ['ROLE_ADMIN', 'ROLE_STAFF'] },
   ];
 
@@ -66,31 +97,16 @@ const Sidebar = () => {
               }
             >
               <Icon size={18} className="shrink-0" />
-              <span>{link.label}</span>
+              <span className="flex-1">{link.label}</span>
+              {link.to === '/leaves' && pendingCount > 0 && (
+                <span className="bg-rose-600 text-white text-[11px] font-bold px-2 py-0.5 rounded-full shrink-0 border border-rose-500 shadow-sm animate-pulse mr-1">
+                  {pendingCount}
+                </span>
+              )}
             </NavLink>
           );
         })}
       </nav>
-
-      {/* Bottom Profile Info */}
-      <div className="p-4 border-t border-slate-800/40 bg-slate-950/20">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="h-10 w-10 rounded-full bg-slate-700/60 flex items-center justify-center font-bold text-slate-200 border border-slate-600/30">
-            {user?.username?.substring(0, 2).toUpperCase()}
-          </div>
-          <div className="overflow-hidden">
-            <p className="text-sm font-medium text-slate-200 truncate">{user?.username}</p>
-            <p className="text-xs text-slate-400 truncate">{user?.role?.replace('ROLE_', '')}</p>
-          </div>
-        </div>
-        <button
-          onClick={logout}
-          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold text-rose-400 hover:bg-rose-950/30 border border-transparent hover:border-rose-900/30 transition-colors"
-        >
-          <LogOut size={16} />
-          <span>Logout</span>
-        </button>
-      </div>
     </aside>
   );
 };

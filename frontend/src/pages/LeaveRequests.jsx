@@ -112,6 +112,8 @@ const LeaveRequests = () => {
       setAttachment('');
       setAttachmentName('');
       fetchLeaves();
+      // Dispatch custom event to notify sidebar badge of updates
+      document.dispatchEvent(new CustomEvent('leaveStatusChanged'));
     } catch (err) {
       showAlert('error', err.response?.data?.message || 'Failed to submit leave application.');
     }
@@ -126,6 +128,8 @@ const LeaveRequests = () => {
       setRemarks('');
       showAlert('success', `Leave request successfully ${status.toLowerCase()}.`);
       fetchLeaves();
+      // Dispatch custom event to notify sidebar badge of updates
+      document.dispatchEvent(new CustomEvent('leaveStatusChanged'));
     } catch (err) {
       showAlert('error', 'Failed to submit review decision.');
     }

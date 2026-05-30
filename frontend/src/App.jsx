@@ -18,6 +18,7 @@ import ActivityLog from './pages/ActivityLog';
 import Profile from './pages/Profile';
 import HostelManagement from './pages/HostelManagement';
 import Calendar from './pages/Calendar';
+import Attendance from './pages/Attendance';
 
 function App() {
   return (
@@ -148,6 +149,16 @@ function App() {
             }
           >
             <Route path="/calendar" element={<Calendar />} />
+          </Route>
+
+          <Route 
+            element={
+              <ProtectedRoute allowedRoles={['ROLE_ADMIN', 'ROLE_STAFF', 'ROLE_FACULTY']}>
+                <DashboardLayout title="Staff & Faculty Attendance" />
+              </ProtectedRoute>
+            }
+          >
+            <Route path="/attendance" element={<Attendance />} />
           </Route>
 
           {/* Catch-all Fallback */}

@@ -15,7 +15,9 @@ import {
   Clock,
   CalendarRange,
   Filter,
-  Eye
+  Eye,
+  Search,
+  Download
 } from 'lucide-react';
 
 const CalendarPage = () => {
@@ -33,6 +35,7 @@ const CalendarPage = () => {
   const [holidays, setHolidays] = useState([]);
   const [loading, setLoading] = useState(true);
   const [alert, setAlert] = useState({ type: '', text: '' });
+  const [searchQuery, setSearchQuery] = useState('');
   
   // Filters State
   const [filters, setFilters] = useState({
@@ -107,6 +110,141 @@ const CalendarPage = () => {
   const showAlert = (type, text) => {
     setAlert({ type, text });
     setTimeout(() => setAlert({ type: '', text: '' }), 5000);
+  };
+
+  // iCal Export Helper
+  const handleExportICS = () => {
+    try {
+      let icsContent = [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//IIT Office//Academic Calendar//EN',
+        'CALSCALE:GREGORIAN',
+        'METHOD:PUBLISH'
+      ];
+
+      const formatToiCalDate = (dateString, isAllDay = false) => {
+        const d = new Date(dateString);
+        if (isNaN(d.getTime())) return '';
+        const pad = (num) => String(num).padStart(2, '0');
+        const year = d.getUTCFullYear();
+        const month = pad(d.getUTCMonth() + 1);
+        const day = pad(d.getUTCDate());
+        if (isAllDay) {
+          return `${year}${month}${day}`;
+        }
+        const hours = pad(d.getUTCHours());
+        const minutes = pad(d.getUTCMinutes());
+        const seconds = pad(d.getUTCSeconds());
+        return `${year}${month}${day}T${hours}${minutes}${seconds}Z`;
+      };
+
+      events.forEach(e => {
+        icsContent.push('BEGIN:VEVENT');
+        icsContent.push(`UID:event_${e.id || Math.random()}@iit.portal`);
+        icsContent.push(`DTSTAMP:${formatToiCalDate(new Date())}`);
+        icsContent.push(`DTSTART:${formatToiCalDate(e.startDate)}`);
+        icsContent.push(`DTEND:${formatToiCalDate(e.endDate)}`);
+        icsContent.push(`SUMMARY:${e.title || 'Academic Event'}`);
+        icsContent.push(`DESCRIPTION:${e.description || ''}`);
+        icsContent.push('END:VEVENT');
+      });
+
+      holidays.forEach(h => {
+        icsContent.push('BEGIN:VEVENT');
+        icsContent.push(`UID:holiday_${h.id || Math.random()}@iit.portal`);
+        icsContent.push(`DTSTAMP:${formatToiCalDate(new Date())}`);
+        const dayStr = h.holidayDate;
+        const nextDay = new Date(dayStr + 'T00:00:00');
+        nextDay.setDate(nextDay.getDate() + 1);
+        const dtstart = dayStr.replace(/-/g, '');
+        const dtend = nextDay.toISOString().split('T')[0].replace(/-/g, '');
+        icsContent.push(`DTSTART;VALUE=DATE:${dtstart}`);
+        icsContent.push(`DTEND;VALUE=DATE:${dtend}`);
+        icsContent.push(`SUMMARY:Holiday: ${h.title || 'Public Holiday'}`);
+        icsContent.push(`DESCRIPTION:${h.description || ''}`);
+        icsContent.push('END:VEVENT');
+      });
+
+      icsContent.push('END:VCALENDAR');
+      const blob = new Blob([icsContent.join('\r\n')], { type: 'text/calendar;charset=utf-8' });
+      const link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.setAttribute('download', 'iit_academic_calendar.ics');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showAlert('success', 'Calendar exported as iCal successfully!');
+    } catch (err) {
+      showAlert('error', 'Failed to export calendar.');
+    }
+  };
+
+  // Upcoming items calculations
+  const getUpcomingItemsList = () => {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const combined = [
+      ...holidays.map(h => ({
+        ...h,
+        isHoliday: true,
+        date: new Date(h.holidayDate + 'T00:00:00')
+      })),
+      ...events.map(e => ({
+        ...e,
+        isHoliday: false,
+        date: new Date(e.startDate)
+      }))
+    ];
+
+    return combined
+      .filter(item => {
+        const itemDateStr = item.isHoliday 
+          ? item.holidayDate 
+          : item.startDate.split('T')[0];
+        return itemDateStr >= todayStr;
+      })
+      .sort((a, b) => a.date - b.date)
+      .slice(0, 5);
+  };
+
+  const upcomingItems = getUpcomingItemsList();
+  const nextMilestone = upcomingItems[0] || null;
+
+  const getDaysRemainingStr = (targetDate) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const target = new Date(targetDate);
+    target.setHours(0, 0, 0, 0);
+    
+    const diffTime = target - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Tomorrow';
+    return `${diffDays} days left`;
+  };
+
+  // Search Results
+  const searchResults = searchQuery.trim()
+    ? [
+        ...holidays.map(h => ({ ...h, isHoliday: true, dateStr: h.holidayDate })),
+        ...events.map(e => ({ ...e, isHoliday: false, dateStr: e.startDate.split('T')[0] }))
+      ].filter(item => 
+        item.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        (item.description && item.description.toLowerCase().includes(searchQuery.toLowerCase()))
+      ).slice(0, 5)
+    : [];
+
+  const handleSearchResultClick = (item) => {
+    const itemDate = new Date(item.isHoliday ? item.holidayDate + 'T00:00:00' : item.startDate);
+    setCurrentDate(itemDate);
+    setSelectedDate(itemDate);
+    setSearchQuery('');
+    if (item.isHoliday) {
+      handleOpenHolidayModal(item);
+    } else {
+      handleOpenEventModal(item);
+    }
   };
 
   // Navigations based on view mode
@@ -394,6 +532,62 @@ const CalendarPage = () => {
         {/* Action button triggers & view switches */}
         <div className="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
           
+          {/* Search Input bar */}
+          <div className="relative w-full sm:w-48 md:w-56 shrink-0 z-35">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search schedules..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-4 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary-500 font-outfit shadow-sm"
+            />
+            {/* Search Results Dropdown */}
+            {searchQuery.trim() && (
+              <div className="absolute left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-50 py-1 max-h-60 overflow-y-auto">
+                {searchResults.map((item, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => handleSearchResultClick(item)}
+                    type="button"
+                    className="w-full px-3.5 py-2 text-left hover:bg-slate-50 transition-colors flex flex-col gap-0.5 border-b last:border-0 border-slate-100"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[10px] font-bold text-slate-800 truncate">{item.title}</span>
+                      <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded leading-none shrink-0 ${
+                        item.isHoliday ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'
+                      }`}>
+                        {item.isHoliday ? 'HOLIDAY' : item.type}
+                      </span>
+                    </div>
+                    <span className="text-[8px] text-slate-400">
+                      {new Date(item.dateStr + 'T00:00:00').toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric'
+                      })}
+                    </span>
+                  </button>
+                ))}
+                {searchResults.length === 0 && (
+                  <div className="px-3.5 py-3 text-center text-xs text-slate-400 font-medium">
+                    No matching schedules
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Export iCal Button */}
+          <button
+            onClick={handleExportICS}
+            className="p-2 bg-white hover:bg-slate-50 text-slate-600 rounded-xl border border-slate-200 shadow-sm transition-colors flex items-center justify-center active:scale-[0.98] text-xs font-semibold gap-1.5"
+            title="Export Calendar to iCal (.ics)"
+          >
+            <Download size={14} />
+            <span className="hidden sm:inline">Export</span>
+          </button>
+
           {/* Filters Toggle */}
           <button
             onClick={() => setShowFiltersPanel(!showFiltersPanel)}
@@ -474,7 +668,31 @@ const CalendarPage = () => {
         
         {/* Left Side Filters Bar */}
         {showFiltersPanel && (
-          <aside className="w-56 border-r border-slate-100 p-5 bg-slate-50/20 space-y-6 shrink-0 hidden md:block animate-fade-in">
+          <aside className="w-56 border-r border-slate-100 p-5 bg-slate-50/20 space-y-5 shrink-0 hidden md:flex flex-col h-full overflow-y-auto animate-fade-in scrollbar-thin">
+            
+            {/* Countdown Widget */}
+            {nextMilestone && (
+              <div className="bg-gradient-to-br from-primary-900 to-slate-900 text-white rounded-2xl p-4 shadow-sm border border-slate-800 flex flex-col gap-2 shrink-0">
+                <div className="flex items-center justify-between">
+                  <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-white/10 text-amber-400 leading-none">
+                    Next Up
+                  </span>
+                  <span className="text-[9px] font-semibold text-slate-300">
+                    {getDaysRemainingStr(nextMilestone.isHoliday ? nextMilestone.holidayDate + 'T00:00:00' : nextMilestone.startDate)}
+                  </span>
+                </div>
+                <h4 className="text-xs font-bold font-outfit text-slate-100 mt-1 line-clamp-1 leading-snug" title={nextMilestone.title}>
+                  {nextMilestone.title}
+                </h4>
+                <p className="text-[10px] text-slate-450 font-medium leading-none">
+                  {new Date(nextMilestone.isHoliday ? nextMilestone.holidayDate + 'T00:00:00' : nextMilestone.startDate).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric'
+                  })}
+                </p>
+              </div>
+            )}
+
             <div>
               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Calendar Filters</h3>
               <div className="space-y-3.5">
@@ -532,12 +750,64 @@ const CalendarPage = () => {
               </div>
             </div>
 
-            <div className="pt-4 border-t border-slate-100 text-xs text-slate-400 space-y-2">
+            {/* Upcoming Events Panel */}
+            <div className="pt-4 border-t border-slate-100 flex-1 flex flex-col min-h-0">
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5 shrink-0">
+                <CalendarDays size={12} className="text-slate-400" />
+                <span>Upcoming Milestones</span>
+              </h3>
+              <div className="space-y-2.5 overflow-y-auto pr-1 flex-1 min-h-0 scrollbar-thin">
+                {upcomingItems.map((item, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => {
+                      const itemDate = new Date(item.isHoliday ? item.holidayDate + 'T00:00:00' : item.startDate);
+                      setCurrentDate(itemDate);
+                      setSelectedDate(itemDate);
+                      if (item.isHoliday) {
+                        handleOpenHolidayModal(item);
+                      } else {
+                        handleOpenEventModal(item);
+                      }
+                    }}
+                    type="button"
+                    className="w-full text-left bg-white hover:bg-slate-50 p-2.5 rounded-xl border border-slate-100 hover:border-slate-200 transition-all flex flex-col gap-1 shadow-sm select-none"
+                  >
+                    <div className="flex items-center justify-between gap-1">
+                      <span className="text-[9px] font-bold text-slate-800 truncate block max-w-[80%]" title={item.title}>
+                        {item.title}
+                      </span>
+                      <span className={`text-[7px] font-bold px-1 py-0.5 rounded leading-none shrink-0 ${
+                        item.isHoliday ? 'bg-amber-50 text-amber-700 border border-amber-200/50' : 'bg-blue-50 text-blue-700 border border-blue-200/50'
+                      }`}>
+                        {item.isHoliday ? 'HOLIDAY' : item.type}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center text-[8px] text-slate-400 font-medium">
+                      <span>
+                        {new Date(item.isHoliday ? item.holidayDate + 'T00:00:00' : item.startDate).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric'
+                        })}
+                      </span>
+                      <span className="font-semibold text-primary-700">
+                        {getDaysRemainingStr(item.isHoliday ? item.holidayDate + 'T00:00:00' : item.startDate)}
+                      </span>
+                    </div>
+                  </button>
+                ))}
+                {upcomingItems.length === 0 && (
+                  <p className="text-[10px] text-slate-400 font-medium py-2 text-center">No upcoming schedules</p>
+                )}
+              </div>
+            </div>
+
+            <div className="pt-4 border-t border-slate-100 text-xs text-slate-400 space-y-2 shrink-0">
               <div className="flex items-center gap-1.5 font-medium">
                 <Info size={12} className="text-slate-400" />
                 <span>Quick View Guide</span>
               </div>
-              <p className="leading-relaxed">Click any cell or hour slot to view, add, or edit scheduled events.</p>
+              <p className="leading-relaxed text-[10px]">Click any cell or hour slot to view, add, or edit scheduled events.</p>
             </div>
           </aside>
         )}
