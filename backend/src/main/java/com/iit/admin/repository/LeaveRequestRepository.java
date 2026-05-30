@@ -19,4 +19,6 @@ public interface LeaveRequestRepository extends JpaRepository<LeaveRequest, Long
     Page<LeaveRequest> searchLeaves(@Param("status") String status, @Param("username") String username, Pageable pageable);
 
     long countByStatus(String status);
+
+    long countByStatusAndUserUsername(String status, String username);
 }

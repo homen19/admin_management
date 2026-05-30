@@ -12,10 +12,41 @@ A production-style full-stack web application simulated for institutional admini
 
 ---
 
+## System Architecture
+
+```mermaid
+graph TD
+    subgraph Mobile Android App
+        A[Android UI: Login/Attendance] -->|Compose & ViewModels| B[Clean Domain Usecases]
+        B -->|Retrofit Client| C[Data Repositories]
+    end
+
+    subgraph Backend Services
+        D[Vite React Web Portal] -->|API Calls| E(Spring Boot RestController)
+        C -->|POST /api/attendance/mobile| E
+        E --> F[AttendanceService]
+        F -->|Geofencing Check| G{Within 300m Campus?}
+        G -->|Yes| H[Save Punch Record]
+        G -->|No| I[Reject Punch]
+        H --> J[(MySQL Database)]
+        
+        K(LeaveRequestController) --> L[LeaveRequestService]
+        L -->|Approve/Reject| M[Save Decision]
+        M -->|Trigger Email| N[EmailService]
+        N -->|SMTP Protocol| O[Gmail SMTP Server]
+        O -->|Inbox Delivery| P[Applicant Inbox]
+    end
+```
+
+---
+
 ## Folder Structure
 
 ```text
 IIT/
+├── android/            # Jetpack Compose native Android application module
+│   ├── app/            # Source code, themes, layouts, viewmodels, and DI modules
+│   └── build.gradle.kts# Android app gradle scripts
 ├── backend/            # Java Spring Boot backend project
 │   ├── src/            # Java source files and configurations
 │   └── pom.xml         # Maven project dependencies file

@@ -59,6 +59,27 @@ public class LeaveRequestController {
         return ResponseEntity.ok(leaves);
     }
 
+    @GetMapping("/pending-count")
+    public ResponseEntity<Map<String, Long>> getPendingCount(@AuthenticationPrincipal UserDetails userDetails) {
+        if (userDetails == null) {
+            System.out.println("[DEBUG] getPendingCount called, but userDetails principal is NULL");
+            Map<String, Long> errResponse = new HashMap<>();
+            errResponse.put("count", 0L);
+            return ResponseEntity.ok(errResponse);
+        }
+        
+        boolean isAdminOrStaff = userDetails.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("ROLE_STAFF"));
+        
+        long count = leaveRequestService.getPendingLeaveCount(userDetails.getUsername(), isAdminOrStaff);
+        System.out.println("[DEBUG] getPendingCount called by user '" + userDetails.getUsername() 
+                           + "' (isAdminOrStaff: " + isAdminOrStaff + "). Result count: " + count);
+        
+        Map<String, Long> response = new HashMap<>();
+        response.put("count", count);
+        return ResponseEntity.ok(response);
+    }
+
     @PostMapping
     public ResponseEntity<LeaveRequestDTO> applyLeave(
             @RequestBody LeaveRequestDTO leaveRequestDTO,

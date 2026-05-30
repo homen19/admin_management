@@ -37,6 +37,9 @@ public class LeaveRequestService {
     @Autowired
     private ActivityLogService activityLogService;
 
+    @Autowired
+    private EmailService emailService;
+
     public Page<LeaveRequestDTO> getLeaveRequests(String status, String username, Pageable pageable) {
         return leaveRequestRepository.searchLeaves(status, username, pageable)
                 .map(this::mapToDTO);
@@ -95,7 +98,44 @@ public class LeaveRequestService {
         activityLogService.log(actionedByUsername, "LEAVE_DECISION", 
                 "Marked leave request #" + id + " as " + status + " for user: " + leaveRequest.getUser().getUsername(), ipAddress);
 
+        try {
+            String recipientEmail = leaveRequest.getUser().getEmail();
+            String displayName = leaveRequest.getUser().getUsername();
+            String roleName = leaveRequest.getUser().getRole().getName();
+            
+            if ("ROLE_STUDENT".equals(roleName)) {
+                Optional<Student> student = studentRepository.findByUserUsername(leaveRequest.getUser().getUsername());
+                if (student.isPresent()) {
+                    displayName = student.get().getName();
+                }
+            } else if ("ROLE_FACULTY".equals(roleName)) {
+                Optional<Faculty> faculty = facultyRepository.findByUserUsername(leaveRequest.getUser().getUsername());
+                if (faculty.isPresent()) {
+                    displayName = faculty.get().getName();
+                }
+            }
+            
+            emailService.sendLeaveStatusEmail(
+                recipientEmail,
+                displayName,
+                leaveRequest.getStartDate().toString(),
+                leaveRequest.getEndDate().toString(),
+                status,
+                remarks
+            );
+        } catch (Exception e) {
+            System.err.println("Error sending leave request email notification: " + e.getMessage());
+        }
+
         return mapToDTO(updated);
+    }
+
+    public long getPendingLeaveCount(String username, boolean isAdminOrStaff) {
+        if (isAdminOrStaff) {
+            return leaveRequestRepository.countByStatus("PENDING");
+        } else {
+            return leaveRequestRepository.countByStatusAndUserUsername("PENDING", username);
+        }
     }
 
     private LeaveRequestDTO mapToDTO(LeaveRequest request) {

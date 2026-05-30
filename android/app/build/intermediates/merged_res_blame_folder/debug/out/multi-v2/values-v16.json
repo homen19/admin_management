@@ -1,0 +1,19 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.iit.attendance.app-mergeDebugResources-55:/values-v16/values-v16.xml",
+            "map": [
+                {
+                    "source": "C:\\Users\\homen\\.gradle\\caches\\8.10.2\\transforms\\5703b84491084b503cf42daaede9ab9e\\transformed\\core-1.12.0\\res\\values-v16\\values-v16.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "65",
+                        "endOffsets": "116"
+                    }
+                }
+            ]
+        }
+    ]
+}

@@ -10,20 +10,20 @@ INSERT INTO roles (id, name) VALUES
 ON DUPLICATE KEY UPDATE name=VALUES(name);
 
 
-INSERT INTO users (id, username, password, email, role_id, created_at) VALUES
-(1, 'admin', '$2a$10$8.uRq3GDG7aR.Wv/fP3A3ODpT0R4P7WupR2L/vQ5/5W5u1Xz1684G', 'admin@iit.ac.in', 1, NOW()),
+INSERT INTO users (id, username, password, email, role_id, card_uid, created_at) VALUES
+(1, 'admin', '$2a$10$8.uRq3GDG7aR.Wv/fP3A3ODpT0R4P7WupR2L/vQ5/5W5u1Xz1684G', 'admin@iit.ac.in', 1, 'CARD_ADMIN', NOW()),
 
-(2, 'staff_rahul', '$2a$10$8.uRq3GDG7aR.Wv/fP3A3ODpT0R4P7WupR2L/vQ5/5W5u1Xz1684G', 'rahul.staff@iit.ac.in', 2, NOW()),
-(3, 'staff_priya', '$2a$10$8.uRq3GDG7aR.Wv/fP3A3ODpT0R4P7WupR2L/vQ5/5W5u1Xz1684G', 'priya.staff@iit.ac.in', 2, NOW()),
+(2, 'staff_rahul', '$2a$10$8.uRq3GDG7aR.Wv/fP3A3ODpT0R4P7WupR2L/vQ5/5W5u1Xz1684G', 'rahul.staff@iit.ac.in', 2, 'CARD_RAHUL', NOW()),
+(3, 'staff_priya', '$2a$10$8.uRq3GDG7aR.Wv/fP3A3ODpT0R4P7WupR2L/vQ5/5W5u1Xz1684G', 'priya.staff@iit.ac.in', 2, 'CARD_PRIYA', NOW()),
 
-(4, 'prof_sharma', '$2a$10$8.uRq3GDG7aR.Wv/fP3A3ODpT0R4P7WupR2L/vQ5/5W5u1Xz1684G', 'dsharma@cse.iit.ac.in', 3, NOW()),
-(5, 'prof_sen', '$2a$10$8.uRq3GDG7aR.Wv/fP3A3ODpT0R4P7WupR2L/vQ5/5W5u1Xz1684G', 'asen@ee.iit.ac.in', 3, NOW()),
-(6, 'prof_gupta', '$2a$10$8.uRq3GDG7aR.Wv/fP3A3ODpT0R4P7WupR2L/vQ5/5W5u1Xz1684G', 'rgupta@maths.iit.ac.in', 3, NOW()),
+(4, 'prof_sharma', '$2a$10$8.uRq3GDG7aR.Wv/fP3A3ODpT0R4P7WupR2L/vQ5/5W5u1Xz1684G', 'dsharma@cse.iit.ac.in', 3, 'CARD_SHARMA', NOW()),
+(5, 'prof_sen', '$2a$10$8.uRq3GDG7aR.Wv/fP3A3ODpT0R4P7WupR2L/vQ5/5W5u1Xz1684G', 'asen@ee.iit.ac.in', 3, 'CARD_SEN', NOW()),
+(6, 'prof_gupta', '$2a$10$8.uRq3GDG7aR.Wv/fP3A3ODpT0R4P7WupR2L/vQ5/5W5u1Xz1684G', 'rgupta@maths.iit.ac.in', 3, 'CARD_GUPTA', NOW()),
 
-(7, 'stud_amit', '$2a$10$8.uRq3GDG7aR.Wv/fP3A3ODpT0R4P7WupR2L/vQ5/5W5u1Xz1684G', 'amit.singh@iit.ac.in', 4, NOW()),
-(8, 'stud_neha', '$2a$10$8.uRq3GDG7aR.Wv/fP3A3ODpT0R4P7WupR2L/vQ5/5W5u1Xz1684G', 'neha.verma@iit.ac.in', 4, NOW()),
-(9, 'stud_vikram', '$2a$10$8.uRq3GDG7aR.Wv/fP3A3ODpT0R4P7WupR2L/vQ5/5W5u1Xz1684G', 'vikram.roy@iit.ac.in', 4, NOW()),
-(10, 'stud_sneha', '$2a$10$8.uRq3GDG7aR.Wv/fP3A3ODpT0R4P7WupR2L/vQ5/5W5u1Xz1684G', 'sneha.reddy@iit.ac.in', 4, NOW())
+(7, 'stud_amit', '$2a$10$8.uRq3GDG7aR.Wv/fP3A3ODpT0R4P7WupR2L/vQ5/5W5u1Xz1684G', 'amit.singh@iit.ac.in', 4, NULL, NOW()),
+(8, 'stud_neha', '$2a$10$8.uRq3GDG7aR.Wv/fP3A3ODpT0R4P7WupR2L/vQ5/5W5u1Xz1684G', 'neha.verma@iit.ac.in', 4, NULL, NOW()),
+(9, 'stud_vikram', '$2a$10$8.uRq3GDG7aR.Wv/fP3A3ODpT0R4P7WupR2L/vQ5/5W5u1Xz1684G', 'vikram.roy@iit.ac.in', 4, NULL, NOW()),
+(10, 'stud_sneha', '$2a$10$8.uRq3GDG7aR.Wv/fP3A3ODpT0R4P7WupR2L/vQ5/5W5u1Xz1684G', 'sneha.reddy@iit.ac.in', 4, NULL, NOW())
 ON DUPLICATE KEY UPDATE password=VALUES(password);
 
 
@@ -64,6 +64,14 @@ INSERT INTO complaints (id, student_id, title, description, category, status, as
 (3, 4, 'Refund of Duplicate Tuition Fee Payment', 'Accidentally paid the semester registration fee twice due to a portal timeout. Requesting refund for the duplicate transaction.', 'FINANCE', 'RESOLVED', 3, NOW() - INTERVAL 15 DAY),
 (4, 1, 'Lab Computer Software Issue', 'The Python compilers on PC-12 and PC-14 in Lab 2 are showing environment path errors.', 'ACADEMIC', 'CLOSED', 2, NOW() - INTERVAL 5 DAY)
 ON DUPLICATE KEY UPDATE title=VALUES(title);
+
+-- 9. INSERT ATTENDANCE RECORDS
+INSERT INTO attendance (user_id, attendance_date, punch_in, punch_out, status, source, latitude, longitude, card_uid) VALUES
+(2, CURDATE() - INTERVAL 1 DAY, CONCAT(CURDATE() - INTERVAL 1 DAY, ' 08:55:00'), CONCAT(CURDATE() - INTERVAL 1 DAY, ' 17:05:00'), 'PRESENT', 'BIOMETRIC', NULL, NULL, 'CARD_RAHUL'),
+(4, CURDATE() - INTERVAL 1 DAY, CONCAT(CURDATE() - INTERVAL 1 DAY, ' 09:20:00'), CONCAT(CURDATE() - INTERVAL 1 DAY, ' 17:30:00'), 'LATE', 'MOBILE', 25.4298, 81.7713, NULL),
+(2, CURDATE(), CONCAT(CURDATE(), ' 08:48:00'), NULL, 'PRESENT', 'BIOMETRIC', NULL, NULL, 'CARD_RAHUL'),
+(5, CURDATE() - INTERVAL 1 DAY, CONCAT(CURDATE() - INTERVAL 1 DAY, ' 09:02:00'), CONCAT(CURDATE() - INTERVAL 1 DAY, ' 17:01:00'), 'PRESENT', 'BIOMETRIC', NULL, NULL, 'CARD_SEN')
+ON DUPLICATE KEY UPDATE status=VALUES(status);
 
 -- 8. INSERT ACTIVITY LOGS
 INSERT INTO activity_logs (id, user_id, action, details, ip_address, created_at) VALUES

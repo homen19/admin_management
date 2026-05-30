@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="accent">#FF0D9488</color>
+    <color name="background">#F8FAFC</color>
+    <color name="error">#EF4444</color>
+    <color name="primary">#FF0F172A</color>
+    <color name="primary_light">#FF334155</color>
+    <color name="secondary">#FF2563EB</color>
+    <color name="success">#10B981</color>
+    <color name="surface">#FFFFFF</color>
+    <string name="app_name">IIT Attendance</string>
+    <string name="attendance_history">Attendance History</string>
+    <string name="attendance_title">IIT Attendance Portal</string>
+    <string name="campus_center">IIIT Allahabad</string>
+    <string name="check_in_at">Checked in: %1$s</string>
+    <string name="check_out_at">Checked out: %1$s</string>
+    <string name="college_location_label">Campus Coordinates: 25.4299° N, 81.7712° E</string>
+    <string name="current_distance">Distance to campus: %1$.2f meters</string>
+    <string name="current_location_label">Device Coordinates: %1$.4f, %2$.4f</string>
+    <string name="distance_unknown">Calculating distance...</string>
+    <string name="fetching_location">Locating device...</string>
+    <string name="location_disabled">Please enable GPS/Location services.</string>
+    <string name="location_permission_required">Location permissions are required to record attendance.</string>
+    <string name="logging_in">Logging in...</string>
+    <string name="login_button">Login</string>
+    <string name="login_failed">Login failed. Please check credentials.</string>
+    <string name="login_subtitle">Access the IIT Attendance System</string>
+    <string name="login_title">Sign In</string>
+    <string name="logout">Logout</string>
+    <string name="no_history">No attendance records found.</string>
+    <string name="outside_campus">You are outside the campus boundary. Punching disabled.</string>
+    <string name="password_label">Password</string>
+    <string name="punch_failed">Punch failed. %1$s</string>
+    <string name="punch_in">Punch In</string>
+    <string name="punch_out">Punch Out</string>
+    <string name="punch_success">Punch successful!</string>
+    <string name="status_absent">ABSENT</string>
+    <string name="status_half_day">HALF_DAY</string>
+    <string name="status_present">PRESENT</string>
+    <string name="user_role">Role: %1$s</string>
+    <string name="username_label">Username</string>
+    <string name="welcome_back">Welcome, %1$s</string>
+    <string name="within_campus">You are within the campus boundary.</string>
+</resources>

@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS users (
     password VARCHAR(255) NOT NULL,
     email VARCHAR(150) NOT NULL UNIQUE,
     role_id BIGINT NOT NULL,
+    card_uid VARCHAR(100) UNIQUE NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE RESTRICT
@@ -102,6 +103,23 @@ CREATE TABLE IF NOT EXISTS activity_logs (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
+-- 9. ATTENDANCE TABLE
+CREATE TABLE IF NOT EXISTS attendance (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    attendance_date DATE NOT NULL,
+    punch_in TIMESTAMP NULL,
+    punch_out TIMESTAMP NULL,
+    status VARCHAR(50) DEFAULT 'PRESENT',
+    source VARCHAR(50) NOT NULL,
+    latitude DOUBLE NULL,
+    longitude DOUBLE NULL,
+    card_uid VARCHAR(100) NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE KEY uq_user_date (user_id, attendance_date)
+) ENGINE=InnoDB;
+
 
 -- ==========================================
 -- INDEXES FOR PERFORMANCE OPTIMIZATION
@@ -115,6 +133,8 @@ CREATE INDEX idx_complaints_category ON complaints(category);
 CREATE INDEX idx_leave_requests_status ON leave_requests(status);
 CREATE INDEX idx_notices_pinned_expiry ON notices(is_pinned, expiry_date);
 CREATE INDEX idx_activity_logs_created ON activity_logs(created_at);
+CREATE INDEX idx_attendance_date ON attendance(attendance_date);
+CREATE INDEX idx_attendance_user_date ON attendance(user_id, attendance_date);
 
 
 -- ==========================================
