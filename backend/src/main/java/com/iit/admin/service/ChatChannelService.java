@@ -41,7 +41,7 @@ public class ChatChannelService {
 
         addParticipant(savedChannel, creator);
 
-        
+
         if (request.getParticipantUserIds() != null) {
             for (Long userId : request.getParticipantUserIds()) {
                 userRepository.findById(userId).ifPresent(user -> addParticipant(savedChannel, user));
