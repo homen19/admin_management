@@ -17,4 +17,7 @@ public class UserProfileDTO {
     
     // Faculty specific
     private String designation;
+
+    // Librarian specific
+    private String employeeId;
 }

@@ -23,7 +23,6 @@ public class RegisterRequest {
     @NotBlank(message = "Name is required")
     private String name;
 
-    @NotBlank(message = "Department is required")
     private String department;
 
     private String phone;
@@ -34,4 +33,7 @@ public class RegisterRequest {
 
     // Faculty specific
     private String designation;
+
+    // Librarian specific
+    private String employeeId;
 }

@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "com.iit.attendance"
+    namespace = "com.iit.cliqchat"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.iit.attendance"
+        applicationId = "com.iit.cliqchat"
         minSdk = 26
         targetSdk = 34
         versionCode = 1

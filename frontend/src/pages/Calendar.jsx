@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import CalendarAIChat from '../components/CalendarAIChat';
 import { 
   CalendarDays, 
   ChevronLeft, 
@@ -17,7 +18,8 @@ import {
   Filter,
   Eye,
   Search,
-  Download
+  Download,
+  Sparkles
 } from 'lucide-react';
 
 const CalendarPage = () => {
@@ -47,6 +49,9 @@ const CalendarPage = () => {
   
   // Show Filters Drawer on Mobile/Desktop Sidebar
   const [showFiltersPanel, setShowFiltersPanel] = useState(true);
+
+  // AI Chat Panel open state (controlled from header button)
+  const [aiChatOpen, setAiChatOpen] = useState(false);
 
   // Modal States
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
@@ -532,6 +537,39 @@ const CalendarPage = () => {
         {/* Action button triggers & view switches */}
         <div className="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
           
+          {/* AI Assistant Button & Dropdown Panel */}
+          <div className="relative shrink-0 z-50">
+            <button
+              id="ai-assistant-toggle-btn"
+              onClick={() => setAiChatOpen((prev) => !prev)}
+              title="AI Calendar Assistant"
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all shadow-sm ${
+                aiChatOpen
+                  ? 'bg-gradient-to-br from-indigo-600 to-violet-700 border-indigo-500 text-white shadow-indigo-900/30'
+                  : 'bg-white border-slate-200 text-slate-600 hover:border-indigo-300 hover:text-indigo-600 hover:bg-indigo-50'
+              }`}
+            >
+              <span className="relative flex h-3.5 w-3.5 shrink-0">
+                {aiChatOpen && (
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-40" />
+                )}
+                <Sparkles size={14} className="relative" />
+              </span>
+              <span className="hidden sm:inline">AI Assistant</span>
+            </button>
+
+            {/* ── Gemini AI Calendar Assistant ─────────────────────────────────── */}
+            <CalendarAIChat
+              events={events}
+              holidays={holidays}
+              fetchData={fetchData}
+              user={user}
+              hasRole={hasRole}
+              isOpen={aiChatOpen}
+              setIsOpen={setAiChatOpen}
+            />
+          </div>
+
           {/* Search Input bar */}
           <div className="relative w-full sm:w-48 md:w-56 shrink-0 z-35">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -1442,6 +1480,7 @@ const CalendarPage = () => {
           </div>
         </div>
       )}
+
     </div>
   );
 };

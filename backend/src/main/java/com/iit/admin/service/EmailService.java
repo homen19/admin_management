@@ -216,4 +216,141 @@ public class EmailService {
             System.out.println("[FALLBACK LOG] Email details:\nTO: " + to + "\nSUBJECT: " + subject + "\nHTML CONTENT:\n" + htmlContent);
         }
     }
+
+    public void sendAdmissionEmailWithAttachment(String toEmail, String studentName, String rollNumber, byte[] pdfBytes) {
+        String subject = "Admission Confirmation Slip - " + studentName + " (" + rollNumber + ")";
+        
+        String htmlContent = "<!DOCTYPE html>\n" +
+            "<html>\n" +
+            "<head>\n" +
+            "    <meta charset=\"UTF-8\">\n" +
+            "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" +
+            "    <title>Admission Confirmation</title>\n" +
+            "    <link href=\"https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap\" rel=\"stylesheet\">\n" +
+            "    <style type=\"text/css\">\n" +
+            "        body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }\n" +
+            "        table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }\n" +
+            "        img { -ms-interpolation-mode: bicubic; }\n" +
+            "        img { border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }\n" +
+            "        table { border-collapse: collapse !important; }\n" +
+            "        body { height: 100% !important; margin: 0 !important; padding: 0 !important; width: 100% !important; background-color: #fafaf9; }\n" +
+            "        a[x-apple-data-detectors] {\n" +
+            "            color: inherit !important;\n" +
+            "            text-decoration: none !important;\n" +
+            "            font-size: inherit !important;\n" +
+            "            font-family: inherit !important;\n" +
+            "            font-weight: inherit !important;\n" +
+            "            line-height: inherit !important;\n" +
+            "        }\n" +
+            "        @media screen and (max-width: 600px) {\n" +
+            "            .container { width: 100% !important; max-width: 100% !important; }\n" +
+            "            .content { padding: 28px 20px !important; }\n" +
+            "            .header { padding: 28px 20px !important; }\n" +
+            "        }\n" +
+            "    </style>\n" +
+            "</head>\n" +
+            "<body style=\"background-color: #fafaf9; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; color: #334155;\">\n" +
+            "    <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\">\n" +
+            "        <tr>\n" +
+            "            <td align=\"center\" style=\"background-color: #fafaf9; padding: 40px 10px;\">\n" +
+            "                <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\" class=\"container\" style=\"max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.03), 0 8px 10px -6px rgba(0, 0, 0, 0.03); border: 1px solid #e2e8f0;\">\n" +
+            "                    <!-- Header Banner -->\n" +
+            "                    <tr>\n" +
+            "                        <td align=\"left\" class=\"header\" style=\"background: #0B1320; background: linear-gradient(135deg, #0B1320 0%, #3a1010 50%, #5f1a1a 100%); padding: 32px 32px; border-bottom: 3px solid #fbbf24;\">\n" +
+            "                            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\">\n" +
+            "                                <tr>\n" +
+            "                                    <td>\n" +
+            "                                        <div style=\"font-family: 'Outfit', sans-serif; font-size: 11px; font-weight: 700; color: #fbbf24; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 4px;\">IIT Admission Office</div>\n" +
+            "                                        <h1 style=\"font-family: 'Outfit', sans-serif; font-size: 24px; font-weight: 700; color: #ffffff; margin: 0; letter-spacing: -0.5px;\">Admission Confirmation</h1>\n" +
+            "                                    </td>\n" +
+            "                                </tr>\n" +
+            "                            </table>\n" +
+            "                        </td>\n" +
+            "                    </tr>\n" +
+            "                    <!-- Body Content -->\n" +
+            "                    <tr>\n" +
+            "                        <td align=\"left\" class=\"content\" style=\"padding: 40px 32px; background-color: #ffffff;\">\n" +
+            "                            <h2 style=\"font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 600; color: #0B1320; margin-top: 0; margin-bottom: 16px;\">Hello " + studentName + ",</h2>\n" +
+            "                            <p style=\"font-size: 15px; line-height: 1.6; color: #475569; margin-top: 0; margin-bottom: 24px;\">Congratulations! Your student admission process has been completed successfully. We have registered your details in the IIT Academic Registry.</p>\n" +
+            "                            \n" +
+            "                            <!-- Info Box Card -->\n" +
+            "                            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\" style=\"background-color: #f8fafc; border-radius: 12px; border-left: 4px solid #10b981; border-top: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; overflow: hidden; margin-bottom: 24px;\">\n" +
+            "                                <tr>\n" +
+            "                                    <td style=\"padding: 24px;\">\n" +
+            "                                        <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\">\n" +
+            "                                            <tr>\n" +
+            "                                                <td style=\"padding-bottom: 14px; border-bottom: 1px solid #e2e8f0;\">\n" +
+            "                                                    <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\">\n" +
+            "                                                        <tr>\n" +
+            "                                                            <td width=\"120\" valign=\"top\" style=\"font-size: 13px; font-weight: 600; color: #64748b; font-family: 'Inter', sans-serif;\">Roll Number</td>\n" +
+            "                                                            <td valign=\"top\" style=\"font-size: 14px; font-weight: 700; color: #0B1320; font-family: 'Inter', sans-serif;\">" + rollNumber + "</td>\n" +
+            "                                                        </tr>\n" +
+            "                                                    </table>\n" +
+            "                                                </td>\n" +
+            "                                            </tr>\n" +
+            "                                            <tr>\n" +
+            "                                                <td style=\"padding-top: 14px;\">\n" +
+            "                                                    <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\">\n" +
+            "                                                        <tr>\n" +
+            "                                                            <td width=\"120\" valign=\"middle\" style=\"font-size: 13px; font-weight: 600; color: #64748b; font-family: 'Inter', sans-serif;\">Status</td>\n" +
+            "                                                            <td valign=\"middle\">\n" +
+            "                                                                <span style=\"display: inline-block; padding: 4px 10px; font-size: 11px; font-weight: 700; font-family: 'Inter', sans-serif; text-transform: uppercase; border-radius: 6px; background-color: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; letter-spacing: 0.5px;\">\n" +
+            "                                                                    ADMITTED\n" +
+            "                                                                </span>\n" +
+            "                                                            </td>\n" +
+            "                                                        </tr>\n" +
+            "                                                    </table>\n" +
+            "                                                </td>\n" +
+            "                                            </tr>\n" +
+            "                                        </table>\n" +
+            "                                    </td>\n" +
+            "                                </tr>\n" +
+            "                            </table>\n" +
+            "                            \n" +
+            "                            <p style=\"font-size: 14px; line-height: 1.6; color: #64748b; margin-top: 24px;\">Your official admission confirmation slip has been attached to this email as a PDF. Please download it for your records.</p>\n" +
+            "                            \n" +
+            "                            <p style=\"font-size: 14px; line-height: 1.6; color: #64748b; margin-top: 24px; margin-bottom: 0;\">If you have any queries or need further assistance, please contact the Academic Registry Office.</p>\n" +
+            "                        </td>\n" +
+            "                    </tr>\n" +
+            "                    <!-- Footer -->\n" +
+            "                    <tr>\n" +
+            "                        <td align=\"center\" style=\"background-color: #f8fafc; padding: 24px 32px; border-top: 1px solid #e2e8f0; font-family: 'Inter', sans-serif; font-size: 12px; color: #94a3b8; line-height: 1.5;\">\n" +
+            "                            <p style=\"margin: 0 0 6px 0; font-weight: 500; color: #64748b;\">Indian Institute of Technology, Allahabad</p>\n" +
+            "                            <p style=\"margin: 0;\">This is an automated administrative notification. Please do not reply directly to this mail.</p>\n" +
+            "                        </td>\n" +
+            "                    </tr>\n" +
+            "                </table>\n" +
+            "            </td>\n" +
+            "        </tr>\n" +
+            "    </table>\n" +
+            "</body>\n" +
+            "</html>";
+
+        if (mailSender == null) {
+            System.out.println("[DEVELOPMENT MODE] Email sender is not configured. Details below:");
+            System.out.println("TO: " + toEmail);
+            System.out.println("FROM: " + fromEmail);
+            System.out.println("SUBJECT: " + subject);
+            System.out.println("ATTACHMENT: Admission_Confirmation.pdf (" + pdfBytes.length + " bytes)");
+            return;
+        }
+
+        try {
+            jakarta.mail.internet.MimeMessage message = mailSender.createMimeMessage();
+            org.springframework.mail.javamail.MimeMessageHelper helper = new org.springframework.mail.javamail.MimeMessageHelper(message, true, "UTF-8");
+            
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject(subject);
+            helper.setText(htmlContent, true);
+            
+            // Add PDF attachment
+            helper.addAttachment("Admission_Confirmation.pdf", new org.springframework.core.io.ByteArrayResource(pdfBytes));
+            
+            mailSender.send(message);
+            System.out.println("Admission Confirmation Email with PDF sent successfully to: " + toEmail);
+        } catch (Exception e) {
+            System.err.println("Failed to send admission email to " + toEmail + ": " + e.getMessage());
+        }
+    }
 }

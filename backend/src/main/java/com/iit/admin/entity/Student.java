@@ -26,8 +26,9 @@ public class Student {
     @Column(nullable = false, length = 150)
     private String name;
 
-    @Column(nullable = false, length = 100)
-    private String department;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "department_id", nullable = false)
+    private Department department;
 
     @Column(nullable = false, unique = true, length = 150)
     private String email;

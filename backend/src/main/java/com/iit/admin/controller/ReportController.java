@@ -35,6 +35,21 @@ public class ReportController {
         return ResponseEntity.ok(reportService.getComplaintCategoryStats());
     }
 
+    @GetMapping("/inventory-status")
+    public ResponseEntity<List<Map<String, Object>>> getInventoryStatus() {
+        return ResponseEntity.ok(reportService.getInventoryStatusStats());
+    }
+
+    @GetMapping("/library-status")
+    public ResponseEntity<List<Map<String, Object>>> getLibraryStatus() {
+        return ResponseEntity.ok(reportService.getLibraryStatusStats());
+    }
+
+    @GetMapping("/finance-status")
+    public ResponseEntity<List<Map<String, Object>>> getFinanceStatus() {
+        return ResponseEntity.ok(reportService.getFinanceIncomeExpenseStats());
+    }
+
     @GetMapping("/export/students/csv")
     public void exportStudentsCSV(HttpServletResponse response) throws IOException {
         response.setContentType("text/csv");

@@ -8,6 +8,7 @@ import com.iit.admin.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -55,6 +56,11 @@ public class FacultyController {
         Pageable pageable = PageRequest.of(page, size, sort);
         Page<FacultyDTO> faculty = facultyService.searchFaculty(department, query, pageable);
         return ResponseEntity.ok(faculty);
+    }
+
+    @GetMapping("/list")
+    public ResponseEntity<List<FacultyDTO>> getAllFacultyList() {
+        return ResponseEntity.ok(facultyService.getAllFacultyList());
     }
 
     @GetMapping("/{id}")

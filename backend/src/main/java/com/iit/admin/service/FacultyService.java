@@ -3,6 +3,8 @@ package com.iit.admin.service;
 import com.iit.admin.dto.FacultyDTO;
 import com.iit.admin.entity.Faculty;
 import com.iit.admin.entity.User;
+import com.iit.admin.entity.Department;
+import com.iit.admin.repository.DepartmentRepository;
 import com.iit.admin.exception.ResourceNotFoundException;
 import com.iit.admin.repository.FacultyRepository;
 import com.iit.admin.repository.UserRepository;
@@ -11,6 +13,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class FacultyService {
@@ -20,6 +24,9 @@ public class FacultyService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private DepartmentRepository departmentRepository;
 
     @Autowired
     private ActivityLogService activityLogService;
@@ -41,13 +48,24 @@ public class FacultyService {
         return mapToDTO(faculty);
     }
 
+    public List<FacultyDTO> getAllFacultyList() {
+        return facultyRepository.findAll().stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
+
     @Transactional
     public FacultyDTO updateFaculty(Long id, FacultyDTO facultyDTO, String adminUsername, String ipAddress) {
         Faculty faculty = facultyRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Faculty member not found with ID: " + id));
 
         faculty.setName(facultyDTO.getName());
-        faculty.setDepartment(facultyDTO.getDepartment());
+        
+        Department dept = departmentRepository.findByCode(facultyDTO.getDepartment())
+                .or(() -> departmentRepository.findByName(facultyDTO.getDepartment()))
+                .orElseThrow(() -> new ResourceNotFoundException("Department not found: " + facultyDTO.getDepartment()));
+        faculty.setDepartment(dept);
+        
         faculty.setPhone(facultyDTO.getPhone());
         faculty.setDesignation(facultyDTO.getDesignation());
 
@@ -83,7 +101,7 @@ public class FacultyService {
         dto.setUserId(faculty.getUser().getId());
         dto.setUsername(faculty.getUser().getUsername());
         dto.setName(faculty.getName());
-        dto.setDepartment(faculty.getDepartment());
+        dto.setDepartment(faculty.getDepartment().getName());
         dto.setEmail(faculty.getEmail());
         dto.setPhone(faculty.getPhone());
         dto.setDesignation(faculty.getDesignation());

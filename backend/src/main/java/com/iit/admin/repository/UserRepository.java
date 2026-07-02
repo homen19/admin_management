@@ -17,5 +17,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u FROM User u WHERE " +
            "(:query IS NULL OR :query = '' OR u.username LIKE %:query% OR u.email LIKE %:query% OR u.role.name LIKE %:query%)")
     Page<User> searchUsers(@Param("query") String query, Pageable pageable);
+
+    java.util.List<User> findByRole_NameNot(String roleName);
+
+    @Query("SELECT u FROM User u WHERE u.role.name IN ('ROLE_ADMIN', 'ROLE_STAFF')")
+    java.util.List<User> findStaffAndAdmins();
 }
 

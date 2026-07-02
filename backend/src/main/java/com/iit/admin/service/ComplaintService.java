@@ -104,7 +104,7 @@ public class ComplaintService {
         dto.setStudentId(complaint.getStudent().getId());
         dto.setStudentName(complaint.getStudent().getName());
         dto.setRollNumber(complaint.getStudent().getRollNumber());
-        dto.setDepartment(complaint.getStudent().getDepartment());
+        dto.setDepartment(complaint.getStudent().getDepartment().getName());
         dto.setTitle(complaint.getTitle());
         dto.setDescription(complaint.getDescription());
         dto.setCategory(complaint.getCategory());

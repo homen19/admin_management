@@ -4,7 +4,7 @@
     "type": "PACKAGED_MANIFESTS",
     "kind": "Directory"
   },
-  "applicationId": "com.iit.attendance",
+  "applicationId": "com.iit.cliqchat",
   "variantName": "debug",
   "elements": [
     {

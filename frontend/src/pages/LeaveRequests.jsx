@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { 
-  Plus, 
-  FileText, 
-  Check, 
-  X, 
-  Calendar, 
-  Eye, 
+import {
+  Plus,
+  FileText,
+  Check,
+  X,
+  Calendar,
+  Eye,
   AlertCircle,
   CheckCircle2,
   Clock,
@@ -19,15 +19,15 @@ const LeaveRequests = () => {
   const [leaves, setLeaves] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('');
-  
+
   // Modals
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [activeRequest, setActiveRequest] = useState(null);
-  
+
   // Alerts
   const [message, setMessage] = useState({ type: '', text: '' });
-  
+
   // File Upload State
   const [uploading, setUploading] = useState(false);
   const [attachment, setAttachment] = useState('');
@@ -39,7 +39,7 @@ const LeaveRequests = () => {
     endDate: '',
     reason: ''
   });
-  
+
   const [remarks, setRemarks] = useState('');
 
   const fetchLeaves = async () => {
@@ -82,7 +82,7 @@ const LeaveRequests = () => {
 
     const uploadData = new FormData();
     uploadData.append('file', file);
-    
+
     setUploading(true);
     try {
       const res = await api.post('/api/leaves/upload', uploadData, {
@@ -158,11 +158,10 @@ const LeaveRequests = () => {
     <div className="space-y-6">
       {/* Alerts */}
       {message.text && (
-        <div className={`p-4 rounded-xl flex items-start gap-3 border animate-fade-in ${
-          message.type === 'success' 
-            ? 'bg-emerald-50 border-emerald-200 text-emerald-800' 
+        <div className={`p-4 rounded-xl flex items-start gap-3 border animate-fade-in ${message.type === 'success'
+            ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
             : 'bg-rose-50 border-rose-200 text-rose-800'
-        }`}>
+          }`}>
           {message.type === 'success' ? <CheckCircle2 size={18} className="shrink-0 mt-0.5" /> : <AlertCircle size={18} className="shrink-0 mt-0.5" />}
           <span>{message.text}</span>
         </div>
@@ -237,7 +236,7 @@ const LeaveRequests = () => {
                     <td className="px-6 py-4 text-center">
                       {leave.attachmentPath ? (
                         <a
-                          href={`http://localhost:8080${leave.attachmentPath}`}
+                          href={`http://localhost:8082${leave.attachmentPath}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center justify-center p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg transition-colors border border-slate-200"
@@ -295,7 +294,7 @@ const LeaveRequests = () => {
           <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-lg flex flex-col max-h-[90vh]">
             <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-3xl">
               <h3 className="font-bold text-slate-800 font-outfit text-lg">Apply for Leave</h3>
-              <button 
+              <button
                 onClick={() => setIsApplyModalOpen(false)}
                 className="p-1 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-slate-400 hover:text-slate-600 transition-colors"
               >
@@ -392,7 +391,7 @@ const LeaveRequests = () => {
           <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-lg flex flex-col max-h-[90vh]">
             <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-3xl">
               <h3 className="font-bold text-slate-800 font-outfit text-lg">Leave Request Details</h3>
-              <button 
+              <button
                 onClick={() => setIsReviewModalOpen(false)}
                 className="p-1 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-slate-400 hover:text-slate-600 transition-colors"
               >
@@ -434,7 +433,7 @@ const LeaveRequests = () => {
                 <div>
                   <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Supporting Document</p>
                   <a
-                    href={`http://localhost:8080${activeRequest.attachmentPath}`}
+                    href={`http://localhost:8082${activeRequest.attachmentPath}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition-colors border border-slate-200"

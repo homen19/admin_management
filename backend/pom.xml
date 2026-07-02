@@ -14,7 +14,7 @@
     <groupId>com.iit</groupId>
     <artifactId>admin</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>IIT Admin Office Management System</name>
+    <name>Admin Office Management System</name>
     <description>Institutional Admin Office System for colleges/IITs</description>
     
     <properties>
@@ -103,6 +103,16 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+
+        <!-- WebSocket + STOMP for real-time chat -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
+        </dependency>
+        <dependency>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+            <groupId>org.springframework.boot</groupId>
         </dependency>
     </dependencies>
 

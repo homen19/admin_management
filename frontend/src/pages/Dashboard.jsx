@@ -2,23 +2,27 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import { Link } from 'react-router-dom';
-import { 
-  Users, 
-  GraduationCap, 
-  CalendarClock, 
-  MessageSquareWarning, 
-  Bell, 
-  Clock, 
+import {
+  Users,
+  GraduationCap,
+  CalendarClock,
+  MessageSquareWarning,
+  Bell,
+  Clock,
   FileText,
   AlertCircle,
   ArrowRight,
   PlusCircle,
   HelpCircle,
-  FileCheck
+  FileCheck,
+  Coins,
+  BookOpen,
+  Home,
+  Package
 } from 'lucide-react';
-import { 
-  PieChart, 
-  Pie, 
+import {
+  PieChart,
+  Pie,
   Cell,
   Tooltip,
   ResponsiveContainer
@@ -38,7 +42,7 @@ const Dashboard = () => {
     try {
       setLoading(true);
       setError('');
-      
+
       // 1. Fetch Stats & Activity Logs
       if (hasRole('ROLE_ADMIN')) {
         const statsRes = await api.get('/api/dashboard/stats');
@@ -57,7 +61,7 @@ const Dashboard = () => {
         const leavesRes = await api.get('/api/leaves?status=PENDING&size=5');
         const complaintsRes = await api.get('/api/complaints?status=OPEN&size=5');
         const statsRes = await api.get('/api/dashboard/stats');
-        
+
         setStats({
           pendingLeaves: statsRes.data.pendingLeaves,
           openComplaints: statsRes.data.openComplaints,
@@ -69,7 +73,7 @@ const Dashboard = () => {
         const leavesRes = await api.get('/api/leaves?size=5');
         const facultyProfileRes = await api.get('/api/faculty/profile');
         const deptStudentsRes = await api.get(`/api/students?department=${encodeURIComponent(facultyProfileRes.data.department)}`);
-        
+
         setStats({
           deptStudents: deptStudentsRes.data.totalElements,
           pendingLeaves: leavesRes.data.content.filter(l => l.status === 'PENDING').length,
@@ -80,7 +84,7 @@ const Dashboard = () => {
         // Student Stats, leaves & complaints
         const leavesRes = await api.get('/api/leaves?size=5');
         const complaintsRes = await api.get('/api/complaints?size=5');
-        
+
         setStats({
           myLeaves: leavesRes.data.totalElements,
           myComplaints: complaintsRes.data.totalElements,
@@ -140,8 +144,8 @@ const Dashboard = () => {
         <div>
           <h3 className="font-bold text-lg">Failed to Load Dashboard</h3>
           <p className="text-sm mt-1">{error}</p>
-          <button 
-            onClick={fetchDashboardData} 
+          <button
+            onClick={fetchDashboardData}
             className="mt-3 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-semibold transition-colors"
           >
             Retry
@@ -204,6 +208,73 @@ const Dashboard = () => {
               </div>
               <div className="h-12 w-12 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center">
                 <MessageSquareWarning size={24} />
+              </div>
+            </div>
+          </div>
+
+          {/* Operational Metrics Row */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
+            {/* Financial Overview */}
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow">
+              <div>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Net Finance Dues</p>
+                <h3 className="text-2xl font-bold text-slate-800 mt-2 font-outfit">
+                  ${((stats.totalIncome || 0) - (stats.totalExpenses || 0)).toLocaleString()}
+                </h3>
+                <p className="text-[10px] text-slate-400 mt-1">
+                  Income: <span className="text-emerald-600 font-semibold">${(stats.totalIncome || 0).toLocaleString()}</span> | Expenses: <span className="text-rose-500 font-semibold">${(stats.totalExpenses || 0).toLocaleString()}</span>
+                </p>
+              </div>
+              <div className="h-12 w-12 bg-emerald-50 text-emerald-700 rounded-xl flex items-center justify-center">
+                <Coins size={24} />
+              </div>
+            </div>
+
+            {/* Library Overview */}
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow">
+              <div>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Library Circulation</p>
+                <h3 className="text-2xl font-bold text-slate-800 mt-2 font-outfit">
+                  {stats.issuedBooks || 0} / {stats.totalBooks || 0} <span className="text-xs font-normal text-slate-400">issued</span>
+                </h3>
+                <p className="text-[10px] text-slate-400 mt-1">
+                  Overdue Books: <span className="text-rose-600 font-semibold">{stats.overdueBooks || 0}</span>
+                </p>
+              </div>
+              <div className="h-12 w-12 bg-sky-50 text-sky-700 rounded-xl flex items-center justify-center">
+                <BookOpen size={24} />
+              </div>
+            </div>
+
+            {/* Hostel Occupancy */}
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow">
+              <div>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Hostel Occupancy</p>
+                <h3 className="text-2xl font-bold text-slate-800 mt-2 font-outfit">
+                  {((stats.occupiedBeds / (stats.totalBeds || 1)) * 100).toFixed(0)}% <span className="text-xs font-normal text-slate-400">filled</span>
+                </h3>
+                <p className="text-[10px] text-slate-400 mt-1">
+                  Beds Occupied: <span className="text-indigo-600 font-semibold">{stats.occupiedBeds || 0}</span> / {stats.totalBeds || 0}
+                </p>
+              </div>
+              <div className="h-12 w-12 bg-indigo-50 text-indigo-700 rounded-xl flex items-center justify-center">
+                <Home size={24} />
+              </div>
+            </div>
+
+            {/* Low Stock Alerts */}
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow">
+              <div>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Inventory Alerts</p>
+                <h3 className="text-2xl font-bold text-slate-800 mt-2 font-outfit">
+                  {stats.lowStockItems || 0} <span className="text-xs font-normal text-slate-400">low stock</span>
+                </h3>
+                <p className="text-[10px] text-slate-400 mt-1">
+                  Items requiring reorder (<span className="text-amber-600 font-semibold">&lt; 10 units</span>)
+                </p>
+              </div>
+              <div className="h-12 w-12 bg-amber-50 text-amber-700 rounded-xl flex items-center justify-center">
+                <Package size={24} />
               </div>
             </div>
           </div>
@@ -637,13 +708,12 @@ const Dashboard = () => {
         <div className="space-y-4">
           {notices.length > 0 ? (
             notices.map((notice) => (
-              <div 
-                key={notice.id} 
-                className={`p-4 rounded-xl border transition-all ${
-                  notice.isPinned 
-                    ? 'bg-amber-50/50 border-amber-200 shadow-sm' 
+              <div
+                key={notice.id}
+                className={`p-4 rounded-xl border transition-all ${notice.isPinned
+                    ? 'bg-amber-50/50 border-amber-200 shadow-sm'
                     : 'bg-white border-slate-200 hover:border-slate-300'
-                }`}
+                  }`}
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
@@ -665,9 +735,9 @@ const Dashboard = () => {
                     </div>
                   </div>
                   {notice.attachmentPath && (
-                    <a 
-                      href={`http://localhost:8080${notice.attachmentPath}`} 
-                      target="_blank" 
+                    <a
+                      href={`http://localhost:8082${notice.attachmentPath}`}
+                      target="_blank"
                       rel="noopener noreferrer"
                       className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition-colors border border-slate-200"
                     >

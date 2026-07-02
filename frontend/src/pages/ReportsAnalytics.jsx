@@ -1,57 +1,66 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  Tooltip, 
-  Legend, 
-  ResponsiveContainer, 
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
   CartesianGrid,
-  PieChart, 
-  Pie, 
+  PieChart,
+  Pie,
   Cell,
   AreaChart,
   Area
 } from 'recharts';
-import { 
-  FileSpreadsheet, 
-  FileText, 
+import {
+  FileSpreadsheet,
+  FileText,
   AlertCircle,
   GraduationCap,
   CalendarCheck,
-  ClipboardList
+  ClipboardList,
+  Package,
+  BookOpen,
+  Coins
 } from 'lucide-react';
 
 const ReportsAnalytics = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  
+
   // Stats states
   const [studentDepts, setStudentDepts] = useState([]);
   const [leaveStats, setLeaveStats] = useState([]);
   const [complaintStats, setComplaintStats] = useState([]);
+  const [inventoryStats, setInventoryStats] = useState([]);
+  const [libraryStats, setLibraryStats] = useState({ total: 0, available: 0, issued: 0 });
+  const [financeStats, setFinanceStats] = useState([]);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
         setLoading(true);
         setError('');
-        
-        const [deptRes, leavesRes, complaintsRes] = await Promise.all([
+
+        const [deptRes, leavesRes, complaintsRes, inventoryRes, libraryRes, financeRes] = await Promise.all([
           api.get('/api/reports/department-students'),
           api.get('/api/reports/monthly-leaves'),
-          api.get('/api/reports/complaint-categories')
+          api.get('/api/reports/complaint-categories'),
+          api.get('/api/reports/inventory-status'),
+          api.get('/api/reports/library-status'),
+          api.get('/api/reports/finance-status')
         ]);
-        
+
         // Format Student Dept Stats
         setStudentDepts(deptRes.data.map(item => ({
           name: item.department.split(' ').map(w => w[0]).join(''),
           fullName: item.department,
           count: item.student_count || item.count
         })));
-        
+
         // Format Leave Stats
         setLeaveStats(leavesRes.data.map(item => ({
           month: item.month,
@@ -60,7 +69,7 @@ const ReportsAnalytics = () => {
           Pending: item.pending_count || item.pending,
           Total: item.total_requests || item.total
         })).reverse()); // Oldest to newest
-        
+
         // Format Complaint Stats
         setComplaintStats(complaintsRes.data.map(item => ({
           category: item.category,
@@ -68,6 +77,30 @@ const ReportsAnalytics = () => {
           Resolved: item.resolved_complaints || item.resolved,
           rate: item.resolution_rate || item.resolutionRate
         })));
+
+        // Format Inventory Stats
+        setInventoryStats(inventoryRes.data.map(item => ({
+          category: item.category ? item.category.replace('_', ' ') : 'UNKNOWN',
+          Total: item.totalQty || 0,
+          Available: item.availableQty || 0,
+          Allocated: (item.totalQty || 0) - (item.availableQty || 0)
+        })));
+
+        // Format Library Stats
+        if (libraryRes.data && libraryRes.data.length > 0) {
+          setLibraryStats({
+            total: libraryRes.data[0].total || 0,
+            available: libraryRes.data[0].available || 0,
+            issued: libraryRes.data[0].issued || 0
+          });
+        }
+
+        // Format Finance Stats
+        setFinanceStats(financeRes.data.map(item => ({
+          month: item.month,
+          Income: item.income || 0,
+          Expense: item.expense || 0
+        })).reverse()); // Oldest to newest
 
       } catch (err) {
         setError('Failed to fetch analytics statistics.');
@@ -81,12 +114,12 @@ const ReportsAnalytics = () => {
 
   const handleExportCSV = () => {
     // Open CSV download URL directly in a new tab/window
-    window.open('http://localhost:8080/api/reports/export/students/csv', '_blank');
+    window.open('http://localhost:8082/api/reports/export/students/csv', '_blank');
   };
 
   const handleExportPDF = () => {
     // Open PDF download URL
-    window.open('http://localhost:8080/api/reports/export/students/pdf', '_blank');
+    window.open('http://localhost:8082/api/reports/export/students/pdf', '_blank');
   };
 
   const COLORS = ['#0ea5e9', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'];
@@ -139,7 +172,7 @@ const ReportsAnalytics = () => {
 
       {/* Analytics Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        
+
         {/* Department-wise Student Count Chart */}
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
           <div className="flex items-center gap-2 mb-4">
@@ -233,9 +266,8 @@ const ReportsAnalytics = () => {
                     <td className="px-4 py-3 text-center">{item.Total}</td>
                     <td className="px-4 py-3 text-center">{item.Resolved}</td>
                     <td className="px-4 py-3 text-right">
-                      <span className={`px-2.5 py-0.5 rounded text-xs font-bold ${
-                        item.rate >= 75 ? 'bg-emerald-50 text-emerald-800' : item.rate >= 40 ? 'bg-amber-50 text-amber-800' : 'bg-rose-50 text-rose-800'
-                      }`}>
+                      <span className={`px-2.5 py-0.5 rounded text-xs font-bold ${item.rate >= 75 ? 'bg-emerald-50 text-emerald-800' : item.rate >= 40 ? 'bg-amber-50 text-amber-800' : 'bg-rose-50 text-rose-800'
+                        }`}>
                         {item.rate}%
                       </span>
                     </td>
@@ -243,6 +275,96 @@ const ReportsAnalytics = () => {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+
+        {/* Finance Overview (Income vs Expense) */}
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col lg:col-span-2">
+          <div className="flex items-center gap-2 mb-4">
+            <Coins size={18} className="text-slate-500" />
+            <h3 className="font-bold text-slate-800 font-outfit text-base">Monthly Income vs Expenses</h3>
+          </div>
+          <div className="h-72 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={financeStats}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                <XAxis dataKey="month" />
+                <YAxis allowDecimals={false} />
+                <Tooltip formatter={(value) => [`$${value.toLocaleString()}`, '']} />
+                <Legend />
+                <Bar dataKey="Income" fill="#10b981" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="Expense" fill="#ef4444" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Inventory Stock Levels */}
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
+          <div className="flex items-center gap-2 mb-4">
+            <Package size={18} className="text-slate-500" />
+            <h3 className="font-bold text-slate-800 font-outfit text-base">Inventory Stock Levels</h3>
+          </div>
+          <div className="h-72 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={inventoryStats} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                <XAxis type="number" />
+                <YAxis dataKey="category" type="category" width={100} tick={{ fontSize: 10 }} />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="Available" fill="#0ea5e9" stackId="a" />
+                <Bar dataKey="Allocated" fill="#f59e0b" stackId="a" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Library Book Circulation */}
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
+          <div className="flex items-center gap-2 mb-4">
+            <BookOpen size={18} className="text-slate-500" />
+            <h3 className="font-bold text-slate-800 font-outfit text-base">Library Book Circulation</h3>
+          </div>
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6 h-full">
+            <div className="h-56 w-full md:w-1/2 flex items-center justify-center">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={[
+                      { name: 'Available', value: libraryStats.available },
+                      { name: 'Issued', value: libraryStats.issued }
+                    ]}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={50}
+                    outerRadius={70}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    <Cell fill="#10b981" />
+                    <Cell fill="#8b5cf6" />
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="w-full md:w-1/2 space-y-4">
+              <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                <span className="text-slate-400 text-xs font-semibold block">Total Holdings</span>
+                <span className="text-slate-800 text-2xl font-bold font-outfit">{libraryStats.total}</span>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-emerald-50/50 p-3 rounded-xl border border-emerald-100">
+                  <span className="text-emerald-700 text-xs font-semibold block">Available</span>
+                  <span className="text-emerald-800 text-lg font-bold font-outfit">{libraryStats.available}</span>
+                </div>
+                <div className="bg-purple-50/50 p-3 rounded-xl border border-purple-100">
+                  <span className="text-purple-700 text-xs font-semibold block">Issued</span>
+                  <span className="text-purple-800 text-lg font-bold font-outfit">{libraryStats.issued}</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 

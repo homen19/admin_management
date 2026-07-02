@@ -16,7 +16,9 @@ import {
   Navigation,
   TrendingUp,
   BarChart3,
-  Users
+  Users,
+  Edit2,
+  X
 } from 'lucide-react';
 import { 
   BarChart, 
@@ -60,6 +62,20 @@ const Attendance = () => {
   // GPS States
   const [gpsCoords, setGpsCoords] = useState({ latitude: '25.4299', longitude: '81.7712' }); // Mocks IIIT Allahabad center by default
   const [useActualGPS, setUseActualGPS] = useState(false);
+
+  // Edit Log States
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [currentLog, setCurrentLog] = useState(null);
+  const [editFormData, setEditFormData] = useState({
+    attendanceDate: '',
+    punchIn: '',
+    punchOut: '',
+    status: 'PRESENT',
+    source: 'BIOMETRIC',
+    latitude: '',
+    longitude: '',
+    cardUid: ''
+  });
 
   // Constants
   const campusCenter = { latitude: 25.4299, longitude: 81.7712 };
@@ -171,6 +187,51 @@ const Attendance = () => {
       setSelectedRegUser('');
     } catch (err) {
       showAlert('error', err.response?.data?.message || 'Failed to register card.');
+    }
+  };
+
+  const formatDateTimeForInput = (dateTimeStr) => {
+    if (!dateTimeStr) return '';
+    return dateTimeStr.substring(0, 16);
+  };
+
+  const handleOpenEditModal = (log) => {
+    setCurrentLog(log);
+    setEditFormData({
+      attendanceDate: log.attendanceDate,
+      punchIn: formatDateTimeForInput(log.punchIn),
+      punchOut: formatDateTimeForInput(log.punchOut),
+      status: log.status,
+      source: log.source,
+      latitude: log.latitude !== null ? log.latitude : '',
+      longitude: log.longitude !== null ? log.longitude : '',
+      cardUid: log.cardUid || ''
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const payload = {
+        ...editFormData,
+        id: currentLog.id,
+        userId: currentLog.userId,
+        username: currentLog.username,
+        // Convert empty string lat/lon to null before sending to backend
+        latitude: editFormData.latitude !== '' ? parseFloat(editFormData.latitude) : null,
+        longitude: editFormData.longitude !== '' ? parseFloat(editFormData.longitude) : null,
+        // If punchIn/punchOut is empty, set to null
+        punchIn: editFormData.punchIn || null,
+        punchOut: editFormData.punchOut || null
+      };
+
+      await api.put(`/api/attendance/${currentLog.id}`, payload);
+      showAlert('success', 'Attendance record updated successfully.');
+      setIsEditModalOpen(false);
+      fetchAllLogs();
+    } catch (err) {
+      showAlert('error', err.response?.data?.message || 'Failed to update attendance record.');
     }
   };
 
@@ -709,12 +770,13 @@ const Attendance = () => {
                     <th className="px-6 py-4">Clock Out</th>
                     <th className="px-6 py-4 text-center">Status</th>
                     <th className="px-6 py-4 text-center">Source</th>
+                    {user?.role === 'ROLE_ADMIN' && <th className="px-6 py-4 text-right">Actions</th>}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
                   {loading ? (
                     <tr>
-                      <td colSpan="7" className="px-6 py-12 text-center">
+                      <td colSpan={user?.role === 'ROLE_ADMIN' ? "8" : "7"} className="px-6 py-12 text-center">
                         <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-primary-600 border-t-transparent"></div>
                       </td>
                     </tr>
@@ -748,11 +810,22 @@ const Attendance = () => {
                             {log.source}
                           </span>
                         </td>
+                        {user?.role === 'ROLE_ADMIN' && (
+                          <td className="px-6 py-4 text-right">
+                            <button
+                              onClick={() => handleOpenEditModal(log)}
+                              className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-500 hover:text-primary-600 transition-colors"
+                              title="Edit attendance"
+                            >
+                              <Edit2 size={16} />
+                            </button>
+                          </td>
+                        )}
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="7" className="px-6 py-12 text-center text-slate-400">
+                      <td colSpan={user?.role === 'ROLE_ADMIN' ? "8" : "7"} className="px-6 py-12 text-center text-slate-400">
                         No logs match the current search filters.
                       </td>
                     </tr>
@@ -1059,6 +1132,155 @@ const Attendance = () => {
                 </div>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* EDIT ATTENDANCE MODAL */}
+      {/* ============================================================== */}
+      {isEditModalOpen && currentLog && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-xl flex flex-col max-h-[90vh]">
+            {/* Header */}
+            <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-3xl">
+              <div>
+                <h3 className="font-bold text-slate-800 font-outfit text-lg">Edit Attendance Log</h3>
+                <p className="text-xs text-slate-400">User: {currentLog.name} ({currentLog.username})</p>
+              </div>
+              <button 
+                onClick={() => setIsEditModalOpen(false)}
+                className="p-1 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleEditSubmit} className="flex-1 overflow-y-auto p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                {/* Date */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Attendance Date</label>
+                  <input
+                    type="date"
+                    value={editFormData.attendanceDate}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, attendanceDate: e.target.value }))}
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    required
+                  />
+                </div>
+                {/* Status */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Status</label>
+                  <select
+                    value={editFormData.status}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, status: e.target.value }))}
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    required
+                  >
+                    <option value="PRESENT">PRESENT</option>
+                    <option value="LATE">LATE</option>
+                    <option value="ABSENT">ABSENT</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                {/* Punch In */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Punch In Time</label>
+                  <input
+                    type="datetime-local"
+                    value={editFormData.punchIn}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, punchIn: e.target.value }))}
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  />
+                </div>
+                {/* Punch Out */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Punch Out Time</label>
+                  <input
+                    type="datetime-local"
+                    value={editFormData.punchOut}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, punchOut: e.target.value }))}
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                {/* Source */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Source</label>
+                  <select
+                    value={editFormData.source}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, source: e.target.value }))}
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    required
+                  >
+                    <option value="BIOMETRIC">BIOMETRIC</option>
+                    <option value="MOBILE">MOBILE</option>
+                    <option value="MANUAL">MANUAL</option>
+                  </select>
+                </div>
+                {/* Card UID */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Card UID</label>
+                  <input
+                    type="text"
+                    value={editFormData.cardUid}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, cardUid: e.target.value }))}
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 font-mono"
+                    placeholder="e.g. CARD_XXXX"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                {/* Latitude */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Latitude</label>
+                  <input
+                    type="number"
+                    step="0.000001"
+                    value={editFormData.latitude}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, latitude: e.target.value }))}
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    placeholder="e.g. 25.4299"
+                  />
+                </div>
+                {/* Longitude */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Longitude</label>
+                  <input
+                    type="number"
+                    step="0.000001"
+                    value={editFormData.longitude}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, longitude: e.target.value }))}
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    placeholder="e.g. 81.7712"
+                  />
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="pt-4 border-t border-slate-100 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsEditModalOpen(false)}
+                  className="px-4 py-2 border border-slate-200 rounded-xl text-slate-500 hover:bg-slate-50 text-sm font-semibold transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-primary-600 hover:bg-primary-500 text-white rounded-xl text-sm font-semibold transition-colors shadow-md"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

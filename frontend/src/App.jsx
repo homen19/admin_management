@@ -19,6 +19,15 @@ import Profile from './pages/Profile';
 import HostelManagement from './pages/HostelManagement';
 import Calendar from './pages/Calendar';
 import Attendance from './pages/Attendance';
+import LibraryManagement from './pages/LibraryManagement';
+import AcademicsManagement from './pages/AcademicsManagement';
+import ClassAttendanceManagement from './pages/ClassAttendanceManagement';
+import FacultySubjects from './pages/FacultySubjects';
+import FinanceManagement from './pages/FinanceManagement';
+import Chat from './pages/Chat';
+import TransportManagement from './pages/TransportManagement';
+import InventoryManagement from './pages/InventoryManagement';
+import TaskManagement from './pages/TaskManagement';
 
 function App() {
   return (
@@ -44,7 +53,7 @@ function App() {
           <Route 
             element={
               <ProtectedRoute allowedRoles={['ROLE_ADMIN', 'ROLE_STAFF']}>
-                <DashboardLayout title="Student Management" />
+                <DashboardLayout title="Student Admission" />
               </ProtectedRoute>
             }
           >
@@ -103,6 +112,16 @@ function App() {
 
           <Route 
             element={
+              <ProtectedRoute allowedRoles={['ROLE_ADMIN', 'ROLE_STAFF', 'ROLE_FACULTY', 'ROLE_LIBRARIAN', 'ROLE_FINANCE', 'ROLE_INVENTORY_ADMIN', 'ROLE_DRIVER']}>
+                <DashboardLayout title="Staff Task Board" />
+              </ProtectedRoute>
+            }
+          >
+            <Route path="/tasks" element={<TaskManagement />} />
+          </Route>
+
+          <Route 
+            element={
               <ProtectedRoute allowedRoles={['ROLE_ADMIN']}>
                 <DashboardLayout title="User Management" />
               </ProtectedRoute>
@@ -143,6 +162,16 @@ function App() {
 
           <Route 
             element={
+              <ProtectedRoute allowedRoles={['ROLE_ADMIN', 'ROLE_STAFF', 'ROLE_STUDENT']}>
+                <DashboardLayout title="Transport & Fleet Management" />
+              </ProtectedRoute>
+            }
+          >
+            <Route path="/transport" element={<TransportManagement />} />
+          </Route>
+
+          <Route 
+            element={
               <ProtectedRoute>
                 <DashboardLayout title="Academic & Event Calendar" />
               </ProtectedRoute>
@@ -159,6 +188,77 @@ function App() {
             }
           >
             <Route path="/attendance" element={<Attendance />} />
+          </Route>
+
+          <Route 
+            element={
+              <ProtectedRoute allowedRoles={['ROLE_ADMIN', 'ROLE_LIBRARIAN', 'ROLE_FACULTY', 'ROLE_STUDENT']}>
+                <DashboardLayout title="Library Management System" />
+              </ProtectedRoute>
+            }
+          >
+            <Route path="/library" element={<LibraryManagement />} />
+          </Route>
+
+          <Route 
+            element={
+              <ProtectedRoute allowedRoles={['ROLE_ADMIN', 'ROLE_STAFF']}>
+                <DashboardLayout title="Academics Structure Management" />
+              </ProtectedRoute>
+            }
+          >
+            <Route path="/academics" element={<AcademicsManagement />} />
+          </Route>
+
+          <Route 
+            element={
+              <ProtectedRoute allowedRoles={['ROLE_FACULTY']}>
+                <DashboardLayout title="My Assigned Subjects" />
+              </ProtectedRoute>
+            }
+          >
+            <Route path="/my-subjects" element={<FacultySubjects />} />
+          </Route>
+
+          <Route 
+            element={
+              <ProtectedRoute allowedRoles={['ROLE_ADMIN', 'ROLE_STAFF', 'ROLE_FACULTY', 'ROLE_STUDENT']}>
+                <DashboardLayout title="Class Attendance Tracking" />
+              </ProtectedRoute>
+            }
+          >
+            <Route path="/class-attendance" element={<ClassAttendanceManagement />} />
+          </Route>
+
+          <Route 
+            element={
+              <ProtectedRoute allowedRoles={['ROLE_ADMIN', 'ROLE_FINANCE']}>
+                <DashboardLayout title="Finance Department" />
+              </ProtectedRoute>
+            }
+          >
+            <Route path="/finance" element={<FinanceManagement />} />
+          </Route>
+
+          <Route 
+            element={
+              <ProtectedRoute allowedRoles={['ROLE_ADMIN', 'ROLE_INVENTORY_ADMIN']}>
+                <DashboardLayout title="Inventory & Asset Management" />
+              </ProtectedRoute>
+            }
+          >
+            <Route path="/inventory" element={<InventoryManagement />} />
+          </Route>
+
+          <Route 
+            element={
+              <ProtectedRoute allowedRoles={['ROLE_ADMIN', 'ROLE_STAFF', 'ROLE_FACULTY', 'ROLE_LIBRARIAN']}>
+                <DashboardLayout title="CliqChat" />
+              </ProtectedRoute>
+            }
+          >
+            <Route path="/chat" element={<Chat />} />
+            <Route path="/chat/:channelId" element={<Chat />} />
           </Route>
 
           {/* Catch-all Fallback */}

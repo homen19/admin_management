@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.iit.attendance.app-mergeDebugResources-55:/values-hr/values-hr.xml",
+            "outputFile": "com.iit.cliqchat.app-mergeDebugResources-55:/values-hr/values-hr.xml",
             "map": [
                 {
                     "source": "C:\\Users\\homen\\.gradle\\caches\\8.10.2\\transforms\\91c94348e64e2f61e7b84bdfcf3ee951\\transformed\\jetified-ui-release\\res\\values-hr\\values-hr.xml",

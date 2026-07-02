@@ -336,7 +336,7 @@ public class HostelService {
         dto.setStudentId(allotment.getStudent().getId());
         dto.setStudentName(allotment.getStudent().getName());
         dto.setRollNumber(allotment.getStudent().getRollNumber());
-        dto.setDepartment(allotment.getStudent().getDepartment());
+        dto.setDepartment(allotment.getStudent().getDepartment().getName());
         dto.setRoomId(allotment.getRoom().getId());
         dto.setRoomNumber(allotment.getRoom().getRoomNumber());
         dto.setHostelName(allotment.getRoom().getHostel().getName());
@@ -354,7 +354,7 @@ public class HostelService {
         dto.setStudentId(req.getStudent().getId());
         dto.setStudentName(req.getStudent().getName());
         dto.setRollNumber(req.getStudent().getRollNumber());
-        dto.setDepartment(req.getStudent().getDepartment());
+        dto.setDepartment(req.getStudent().getDepartment().getName());
         dto.setHostelId(req.getHostel().getId());
         dto.setHostelName(req.getHostel().getName());
         dto.setSharingType(req.getSharingType());

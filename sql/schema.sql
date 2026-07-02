@@ -121,6 +121,82 @@ CREATE TABLE IF NOT EXISTS attendance (
 ) ENGINE=InnoDB;
 
 
+-- 10. LIBRARIANS TABLE
+CREATE TABLE IF NOT EXISTS librarians (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT UNIQUE NOT NULL,
+    name VARCHAR(150) NOT NULL,
+    employee_id VARCHAR(50) NOT NULL UNIQUE,
+    email VARCHAR(150) NOT NULL UNIQUE,
+    phone VARCHAR(20),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- 11. BOOKS TABLE
+CREATE TABLE IF NOT EXISTS books (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    isbn VARCHAR(50) NOT NULL UNIQUE,
+    title VARCHAR(255) NOT NULL,
+    author VARCHAR(255) NOT NULL,
+    publisher VARCHAR(255),
+    copies_total INT NOT NULL DEFAULT 1,
+    copies_available INT NOT NULL DEFAULT 1,
+    location_shelf VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- 12. BOOK ISSUES TABLE
+CREATE TABLE IF NOT EXISTS book_issues (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    book_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    issue_date DATE NOT NULL,
+    due_date DATE NOT NULL,
+    return_date DATE NULL,
+    status VARCHAR(50) DEFAULT 'ISSUED', -- ISSUED, RETURNED, OVERDUE
+    fine_amount DECIMAL(10,2) DEFAULT 0.00,
+    fine_paid BOOLEAN DEFAULT TRUE,
+    issued_by BIGINT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (book_id) REFERENCES books(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (issued_by) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+-- 13. INVENTORY ITEMS TABLE
+CREATE TABLE IF NOT EXISTS inventory_items (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    item_name VARCHAR(100) NOT NULL,
+    sku VARCHAR(50) UNIQUE NOT NULL,
+    category VARCHAR(50) NOT NULL,
+    description TEXT,
+    location VARCHAR(100),
+    total_quantity INT NOT NULL DEFAULT 0,
+    available_quantity INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- 14. INVENTORY ALLOCATIONS TABLE
+CREATE TABLE IF NOT EXISTS inventory_allocations (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    item_id BIGINT NOT NULL,
+    allocated_to_id BIGINT NOT NULL,
+    allocated_by_id BIGINT NOT NULL,
+    quantity INT NOT NULL DEFAULT 1,
+    allocation_date DATE NOT NULL,
+    expected_return_date DATE,
+    actual_return_date DATE,
+    status VARCHAR(20) NOT NULL DEFAULT 'ALLOCATED',
+    remarks TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (item_id) REFERENCES inventory_items(id) ON DELETE CASCADE,
+    FOREIGN KEY (allocated_to_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (allocated_by_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+
 -- ==========================================
 -- INDEXES FOR PERFORMANCE OPTIMIZATION
 -- ==========================================

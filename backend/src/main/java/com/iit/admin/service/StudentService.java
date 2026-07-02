@@ -1,6 +1,8 @@
 package com.iit.admin.service;
 
 import com.iit.admin.dto.StudentDTO;
+import com.iit.admin.entity.Department;
+import com.iit.admin.repository.DepartmentRepository;
 import com.iit.admin.entity.Student;
 import com.iit.admin.entity.User;
 import com.iit.admin.exception.ResourceNotFoundException;
@@ -20,6 +22,9 @@ public class StudentService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private DepartmentRepository departmentRepository;
 
     @Autowired
     private ActivityLogService activityLogService;
@@ -47,7 +52,12 @@ public class StudentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Student not found with ID: " + id));
 
         student.setName(studentDTO.getName());
-        student.setDepartment(studentDTO.getDepartment());
+        
+        Department dept = departmentRepository.findByCode(studentDTO.getDepartment())
+                .or(() -> departmentRepository.findByName(studentDTO.getDepartment()))
+                .orElseThrow(() -> new ResourceNotFoundException("Department not found: " + studentDTO.getDepartment()));
+        student.setDepartment(dept);
+        
         student.setPhone(studentDTO.getPhone());
         student.setSemester(studentDTO.getSemester());
 
@@ -84,7 +94,7 @@ public class StudentService {
         dto.setUsername(student.getUser().getUsername());
         dto.setRollNumber(student.getRollNumber());
         dto.setName(student.getName());
-        dto.setDepartment(student.getDepartment());
+        dto.setDepartment(student.getDepartment().getName());
         dto.setEmail(student.getEmail());
         dto.setPhone(student.getPhone());
         dto.setSemester(student.getSemester());

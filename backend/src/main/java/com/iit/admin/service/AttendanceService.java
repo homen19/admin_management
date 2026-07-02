@@ -182,6 +182,28 @@ public class AttendanceService {
         return R * c;
     }
 
+    @Transactional
+    public AttendanceDTO updateAttendance(Long id, AttendanceDTO dto, String adminUsername, String ipAddress) {
+        Attendance attendance = attendanceRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Attendance record not found with ID: " + id));
+
+        attendance.setAttendanceDate(dto.getAttendanceDate());
+        attendance.setPunchIn(dto.getPunchIn());
+        attendance.setPunchOut(dto.getPunchOut());
+        attendance.setStatus(dto.getStatus());
+        attendance.setSource(dto.getSource());
+        attendance.setLatitude(dto.getLatitude());
+        attendance.setLongitude(dto.getLongitude());
+        attendance.setCardUid(dto.getCardUid());
+
+        Attendance saved = attendanceRepository.save(attendance);
+        activityLogService.log(adminUsername, "UPDATE_ATTENDANCE", 
+                String.format("Updated attendance record ID %d for user %s. Status: %s", id, saved.getUser().getUsername(), saved.getStatus()), 
+                ipAddress);
+
+        return mapToDTO(saved);
+    }
+
     private AttendanceDTO mapToDTO(Attendance attendance) {
         AttendanceDTO dto = new AttendanceDTO();
         dto.setId(attendance.getId());

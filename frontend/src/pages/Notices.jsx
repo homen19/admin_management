@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { 
-  Megaphone, 
-  Pin, 
-  Trash2, 
-  Plus, 
-  X, 
-  FileText, 
-  AlertCircle, 
-  CheckCircle2, 
+import {
+  Megaphone,
+  Pin,
+  Trash2,
+  Plus,
+  X,
+  FileText,
+  AlertCircle,
+  CheckCircle2,
   Calendar,
   Search
 } from 'lucide-react';
@@ -19,11 +19,11 @@ const Notices = () => {
   const [notices, setNotices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  
+
   // Modal
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
-  
+
   // File Upload State
   const [uploading, setUploading] = useState(false);
   const [attachment, setAttachment] = useState('');
@@ -80,7 +80,7 @@ const Notices = () => {
 
     const uploadData = new FormData();
     uploadData.append('file', file);
-    
+
     setUploading(true);
     try {
       // Re-use file upload endpoint from /api/leaves/upload since it's identical
@@ -135,11 +135,10 @@ const Notices = () => {
     <div className="space-y-6">
       {/* Alert Banner */}
       {message.text && (
-        <div className={`p-4 rounded-xl flex items-start gap-3 border animate-fade-in ${
-          message.type === 'success' 
-            ? 'bg-emerald-50 border-emerald-200 text-emerald-800' 
+        <div className={`p-4 rounded-xl flex items-start gap-3 border animate-fade-in ${message.type === 'success'
+            ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
             : 'bg-rose-50 border-rose-200 text-rose-800'
-        }`}>
+          }`}>
           {message.type === 'success' ? <CheckCircle2 size={18} className="shrink-0 mt-0.5" /> : <AlertCircle size={18} className="shrink-0 mt-0.5" />}
           <span>{message.text}</span>
         </div>
@@ -179,13 +178,12 @@ const Notices = () => {
           </div>
         ) : notices.length > 0 ? (
           notices.map((notice) => (
-            <div 
-              key={notice.id} 
-              className={`p-6 bg-white rounded-2xl border transition-all ${
-                notice.isPinned 
-                  ? 'border-amber-200 bg-amber-50/20 shadow-sm' 
+            <div
+              key={notice.id}
+              className={`p-6 bg-white rounded-2xl border transition-all ${notice.isPinned
+                  ? 'border-amber-200 bg-amber-50/20 shadow-sm'
                   : 'border-slate-200 hover:shadow-md'
-              }`}
+                }`}
             >
               <div className="flex items-start justify-between gap-6">
                 <div className="flex-1 space-y-2">
@@ -198,9 +196,9 @@ const Notices = () => {
                       </span>
                     )}
                   </div>
-                  
+
                   <p className="text-slate-600 text-sm whitespace-pre-line leading-relaxed">{notice.content}</p>
-                  
+
                   <div className="flex items-center gap-4 pt-2 text-xs text-slate-400 font-medium">
                     <span>Posted by: <b>{notice.createdByName}</b></span>
                     <span>Date: {new Date(notice.createdAt).toLocaleDateString()}</span>
@@ -216,7 +214,7 @@ const Notices = () => {
                 <div className="flex items-center gap-2 shrink-0">
                   {notice.attachmentPath && (
                     <a
-                      href={`http://localhost:8080${notice.attachmentPath}`}
+                      href={`http://localhost:8082${notice.attachmentPath}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition-colors flex items-center gap-1.5"
@@ -253,7 +251,7 @@ const Notices = () => {
           <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-lg flex flex-col max-h-[90vh]">
             <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-3xl">
               <h3 className="font-bold text-slate-800 font-outfit text-lg">Create Official Notice</h3>
-              <button 
+              <button
                 onClick={() => setIsAddModalOpen(false)}
                 className="p-1 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-slate-400 hover:text-slate-600 transition-colors"
               >

@@ -2,20 +2,29 @@ import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
-import { 
-  LayoutDashboard, 
-  Users, 
-  GraduationCap, 
-  CalendarClock, 
-  Megaphone, 
-  MessageSquareWarning, 
-  BarChart3, 
+import {
+  LayoutDashboard,
+  Users,
+  GraduationCap,
+  CalendarClock,
+  Megaphone,
+  MessageSquareWarning,
+  BarChart3,
   UserCog,
   ClipboardList,
   User,
   Hotel,
   CalendarDays,
-  Fingerprint
+  Fingerprint,
+  BookOpen,
+  Layers,
+  ListTodo,
+  BookMarked,
+  Landmark,
+  MessageCircle,
+  Bus,
+  Package,
+  KanbanSquare
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -53,17 +62,26 @@ const Sidebar = () => {
 
   const links = [
     { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['ROLE_ADMIN', 'ROLE_STAFF', 'ROLE_FACULTY', 'ROLE_STUDENT'] },
-    { to: '/students', label: 'Students', icon: Users, roles: ['ROLE_ADMIN', 'ROLE_STAFF'] },
+    { to: '/students', label: 'Student Admission', icon: Users, roles: ['ROLE_ADMIN', 'ROLE_STAFF'] },
+    { to: '/academics', label: 'Academics Structure', icon: Layers, roles: ['ROLE_ADMIN', 'ROLE_STAFF'] },
     { to: '/faculty', label: 'Faculty', icon: GraduationCap, roles: ['ROLE_ADMIN', 'ROLE_STAFF', 'ROLE_FACULTY'] },
+    { to: '/my-subjects', label: 'My Subjects', icon: BookMarked, roles: ['ROLE_FACULTY'] },
     { to: '/leaves', label: 'Leave Requests', icon: CalendarClock, roles: ['ROLE_ADMIN', 'ROLE_STAFF', 'ROLE_FACULTY', 'ROLE_STUDENT'] },
     { to: '/notices', label: 'Notice Board', icon: Megaphone, roles: ['ROLE_ADMIN', 'ROLE_STAFF', 'ROLE_FACULTY', 'ROLE_STUDENT'] },
     { to: '/complaints', label: 'Complaints / Tickets', icon: MessageSquareWarning, roles: ['ROLE_ADMIN', 'ROLE_STAFF', 'ROLE_STUDENT'] },
-    {to: '/hostels', label: 'Hostel Management', icon: Hotel, roles: ['ROLE_ADMIN', 'ROLE_STAFF', 'ROLE_STUDENT']},
-    {to: '/calendar', label: 'Academic Calendar', icon: CalendarDays, roles: ['ROLE_ADMIN', 'ROLE_STAFF', 'ROLE_FACULTY', 'ROLE_STUDENT']},
-    {to: '/attendance', label: 'Attendance', icon: Fingerprint, roles: ['ROLE_ADMIN', 'ROLE_STAFF', 'ROLE_FACULTY']},
-    {to: '/users', label: 'User Management', icon: UserCog, roles: ['ROLE_ADMIN']},
+    { to: '/hostels', label: 'Hostel Management', icon: Hotel, roles: ['ROLE_ADMIN', 'ROLE_STAFF', 'ROLE_STUDENT'] },
+    { to: '/calendar', label: 'Calendar', icon: CalendarDays, roles: ['ROLE_ADMIN', 'ROLE_STAFF', 'ROLE_FACULTY', 'ROLE_STUDENT'] },
+    { to: '/attendance', label: 'Attendance', icon: Fingerprint, roles: ['ROLE_ADMIN', 'ROLE_STAFF', 'ROLE_FACULTY'] },
+    { to: '/class-attendance', label: 'Class Attendance', icon: ListTodo, roles: ['ROLE_ADMIN', 'ROLE_STAFF', 'ROLE_FACULTY', 'ROLE_STUDENT'] },
+    { to: '/library', label: 'Library Management', icon: BookOpen, roles: ['ROLE_ADMIN', 'ROLE_LIBRARIAN', 'ROLE_FACULTY', 'ROLE_STUDENT'] },
+    { to: '/users', label: 'User Management', icon: UserCog, roles: ['ROLE_ADMIN'] },
+    { to: '/tasks', label: 'Task Board', icon: KanbanSquare, roles: ['ROLE_ADMIN', 'ROLE_STAFF', 'ROLE_FACULTY', 'ROLE_LIBRARIAN', 'ROLE_FINANCE', 'ROLE_INVENTORY_ADMIN', 'ROLE_DRIVER'] },
     { to: '/logs', label: 'Activity Logs', icon: ClipboardList, roles: ['ROLE_ADMIN'] },
     { to: '/reports', label: 'Reports & Analytics', icon: BarChart3, roles: ['ROLE_ADMIN', 'ROLE_STAFF'] },
+    { to: '/finance', label: 'Finance', icon: Landmark, roles: ['ROLE_ADMIN', 'ROLE_FINANCE'] },
+    { to: '/inventory', label: 'Inventory', icon: Package, roles: ['ROLE_ADMIN', 'ROLE_INVENTORY_ADMIN'] },
+
+    { to: '/transport', label: 'Transport & Fleet', icon: Bus, roles: ['ROLE_ADMIN', 'ROLE_STAFF', 'ROLE_STUDENT'] },
   ];
 
   return (
@@ -88,11 +106,10 @@ const Sidebar = () => {
             <NavLink
               key={link.to}
               to={link.to}
-              className={({ isActive }) => 
-                `flex items-center gap-3 py-3 pr-4 rounded-r-xl transition-all duration-150 text-sm font-medium ${
-                  isActive 
-                    ? 'bg-primary-900/60 text-amber-400 border-l-4 border-amber-500 pl-3 font-semibold shadow-inner shadow-black/20' 
-                    : 'text-slate-400 hover:bg-[#152033]/60 hover:text-slate-100 border-l-4 border-transparent pl-3'
+              className={({ isActive }) =>
+                `flex items-center gap-3 py-3 pr-4 rounded-r-xl transition-all duration-150 text-sm font-medium ${isActive
+                  ? 'bg-primary-900/60 text-amber-400 border-l-4 border-amber-500 pl-3 font-semibold shadow-inner shadow-black/20'
+                  : 'text-slate-400 hover:bg-[#152033]/60 hover:text-slate-100 border-l-4 border-transparent pl-3'
                 }`
               }
             >

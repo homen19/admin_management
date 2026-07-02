@@ -11,10 +11,14 @@ import com.iit.admin.entity.Student;
 import com.iit.admin.entity.User;
 import com.iit.admin.exception.BadRequestException;
 import com.iit.admin.exception.ResourceNotFoundException;
+import com.iit.admin.entity.Department;
+import com.iit.admin.repository.DepartmentRepository;
 import com.iit.admin.repository.FacultyRepository;
 import com.iit.admin.repository.RoleRepository;
 import com.iit.admin.repository.StudentRepository;
 import com.iit.admin.repository.UserRepository;
+import com.iit.admin.entity.Librarian;
+import com.iit.admin.repository.LibrarianRepository;
 import com.iit.admin.security.JwtTokenProvider;
 import com.iit.admin.security.UserPrincipal;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +49,12 @@ public class UserService {
 
     @Autowired
     private FacultyRepository facultyRepository;
+
+    @Autowired
+    private LibrarianRepository librarianRepository;
+
+    @Autowired
+    private DepartmentRepository departmentRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -80,6 +90,15 @@ public class UserService {
 
     @Transactional
     public User registerUser(RegisterRequest registerRequest, String ipAddress) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null) {
+            boolean isAdmin = auth.getAuthorities().stream()
+                    .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
+            if (!isAdmin && !"ROLE_STUDENT".equals(registerRequest.getRole())) {
+                throw new BadRequestException("Staff members are only allowed to register student profiles!");
+            }
+        }
+
         if (userRepository.existsByUsername(registerRequest.getUsername())) {
             throw new BadRequestException("Username is already taken!");
         }
@@ -100,6 +119,9 @@ public class UserService {
         User savedUser = userRepository.save(user);
 
         if ("ROLE_STUDENT".equals(role.getName())) {
+            if (registerRequest.getDepartment() == null || registerRequest.getDepartment().trim().isEmpty()) {
+                throw new BadRequestException("Department is required for student registration!");
+            }
             if (registerRequest.getRollNumber() == null || registerRequest.getSemester() == null) {
                 throw new BadRequestException("Roll number and Semester are required for student registration!");
             }
@@ -110,25 +132,49 @@ public class UserService {
             student.setUser(savedUser);
             student.setRollNumber(registerRequest.getRollNumber());
             student.setName(registerRequest.getName());
-            student.setDepartment(registerRequest.getDepartment());
+            Department dept = departmentRepository.findByCode(registerRequest.getDepartment())
+                    .or(() -> departmentRepository.findByName(registerRequest.getDepartment()))
+                    .orElseThrow(() -> new ResourceNotFoundException("Department not found: " + registerRequest.getDepartment()));
+            student.setDepartment(dept);
             student.setEmail(registerRequest.getEmail());
             student.setPhone(registerRequest.getPhone());
             student.setSemester(registerRequest.getSemester());
             studentRepository.save(student);
             
         } else if ("ROLE_FACULTY".equals(role.getName())) {
+            if (registerRequest.getDepartment() == null || registerRequest.getDepartment().trim().isEmpty()) {
+                throw new BadRequestException("Department is required for faculty registration!");
+            }
             if (registerRequest.getDesignation() == null) {
                 throw new BadRequestException("Designation is required for faculty registration!");
             }
             Faculty faculty = new Faculty();
             faculty.setUser(savedUser);
             faculty.setName(registerRequest.getName());
-            faculty.setDepartment(registerRequest.getDepartment());
+            Department dept = departmentRepository.findByCode(registerRequest.getDepartment())
+                    .or(() -> departmentRepository.findByName(registerRequest.getDepartment()))
+                    .orElseThrow(() -> new ResourceNotFoundException("Department not found: " + registerRequest.getDepartment()));
+            faculty.setDepartment(dept);
             faculty.setEmail(registerRequest.getEmail());
             faculty.setPhone(registerRequest.getPhone());
             faculty.setDesignation(registerRequest.getDesignation());
             facultyRepository.save(faculty);
+        } else if ("ROLE_LIBRARIAN".equals(role.getName())) {
+            if (registerRequest.getEmployeeId() == null || registerRequest.getEmployeeId().trim().isEmpty()) {
+                throw new BadRequestException("Employee ID is required for librarian registration!");
+            }
+            if (librarianRepository.findByEmployeeId(registerRequest.getEmployeeId()).isPresent()) {
+                throw new BadRequestException("Employee ID is already in use!");
+            }
+            Librarian librarian = new Librarian();
+            librarian.setUser(savedUser);
+            librarian.setName(registerRequest.getName());
+            librarian.setEmployeeId(registerRequest.getEmployeeId());
+            librarian.setEmail(registerRequest.getEmail());
+            librarian.setPhone(registerRequest.getPhone());
+            librarianRepository.save(librarian);
         }
+        // ROLE_ADMIN, ROLE_STAFF, ROLE_FINANCE: no separate profile table needed
 
         activityLogService.log(null, "REGISTER_USER", "Registered new user: " + user.getUsername() + " as " + role.getName(), ipAddress);
 
@@ -161,6 +207,10 @@ public class UserService {
             facultyRepository.findByUserUsername(user.getUsername()).ifPresent(faculty -> {
                 facultyRepository.delete(faculty);
             });
+        } else if ("ROLE_LIBRARIAN".equals(user.getRole().getName())) {
+            librarianRepository.findByUserUsername(user.getUsername()).ifPresent(librarian -> {
+                librarianRepository.delete(librarian);
+            });
         }
         
         if (userRepository.existsById(userId)) {
@@ -184,7 +234,7 @@ public class UserService {
                     .orElseThrow(() -> new ResourceNotFoundException("Student profile not found for user: " + username));
             profile.setName(student.getName());
             profile.setPhone(student.getPhone());
-            profile.setDepartment(student.getDepartment());
+            profile.setDepartment(student.getDepartment().getName());
             profile.setRollNumber(student.getRollNumber());
             profile.setSemester(student.getSemester());
         } else if ("ROLE_FACULTY".equals(user.getRole().getName())) {
@@ -192,9 +242,16 @@ public class UserService {
                     .orElseThrow(() -> new ResourceNotFoundException("Faculty profile not found for user: " + username));
             profile.setName(faculty.getName());
             profile.setPhone(faculty.getPhone());
-            profile.setDepartment(faculty.getDepartment());
+            profile.setDepartment(faculty.getDepartment().getName());
             profile.setDesignation(faculty.getDesignation());
+        } else if ("ROLE_LIBRARIAN".equals(user.getRole().getName())) {
+            Librarian librarian = librarianRepository.findByUserUsername(username)
+                    .orElseThrow(() -> new ResourceNotFoundException("Librarian profile not found for user: " + username));
+            profile.setName(librarian.getName());
+            profile.setPhone(librarian.getPhone());
+            profile.setEmployeeId(librarian.getEmployeeId());
         } else {
+            // ROLE_ADMIN, ROLE_STAFF, ROLE_FINANCE: no separate profile table needed
             profile.setName(user.getUsername());
         }
         
@@ -220,7 +277,13 @@ public class UserService {
                     .orElseThrow(() -> new ResourceNotFoundException("Student profile not found for user: " + username));
             student.setName(profileDTO.getName());
             student.setPhone(profileDTO.getPhone());
-            student.setDepartment(profileDTO.getDepartment());
+            
+            Department dept = departmentRepository.findByCode(profileDTO.getDepartment())
+
+                    .or(() -> departmentRepository.findByName(profileDTO.getDepartment()))
+                    .orElseThrow(() -> new ResourceNotFoundException("Department not found: " + profileDTO.getDepartment()));
+            student.setDepartment(dept);
+            
             student.setEmail(user.getEmail());
             studentRepository.save(student);
         } else if ("ROLE_FACULTY".equals(user.getRole().getName())) {
@@ -228,9 +291,21 @@ public class UserService {
                     .orElseThrow(() -> new ResourceNotFoundException("Faculty profile not found for user: " + username));
             faculty.setName(profileDTO.getName());
             faculty.setPhone(profileDTO.getPhone());
-            faculty.setDepartment(profileDTO.getDepartment());
+            
+            Department dept = departmentRepository.findByCode(profileDTO.getDepartment())
+                    .or(() -> departmentRepository.findByName(profileDTO.getDepartment()))
+                    .orElseThrow(() -> new ResourceNotFoundException("Department not found: " + profileDTO.getDepartment()));
+            faculty.setDepartment(dept);
+            
             faculty.setEmail(user.getEmail());
             facultyRepository.save(faculty);
+        } else if ("ROLE_LIBRARIAN".equals(user.getRole().getName())) {
+            Librarian librarian = librarianRepository.findByUserUsername(username)
+                    .orElseThrow(() -> new ResourceNotFoundException("Librarian profile not found for user: " + username));
+            librarian.setName(profileDTO.getName());
+            librarian.setPhone(profileDTO.getPhone());
+            librarian.setEmail(user.getEmail());
+            librarianRepository.save(librarian);
         }
         
         userRepository.save(user);
@@ -268,8 +343,12 @@ public class UserService {
         } else if ("ROLE_FACULTY".equals(user.getRole().getName())) {
             facultyRepository.findByUserUsername(user.getUsername())
                 .ifPresent(f -> dto.setName(f.getName()));
+        } else if ("ROLE_LIBRARIAN".equals(user.getRole().getName())) {
+            librarianRepository.findByUserUsername(user.getUsername())
+                .ifPresent(l -> dto.setName(l.getName()));
         } else {
-            dto.setName("N/A");
+            // ROLE_ADMIN, ROLE_STAFF, ROLE_FINANCE – no profile table
+            dto.setName(user.getUsername());
         }
         return dto;
     }

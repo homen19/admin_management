@@ -6,7 +6,9 @@ INSERT INTO roles (id, name) VALUES
 (1, 'ROLE_ADMIN'),
 (2, 'ROLE_STAFF'),
 (3, 'ROLE_FACULTY'),
-(4, 'ROLE_STUDENT')
+(4, 'ROLE_STUDENT'),
+(5, 'ROLE_LIBRARIAN'),
+(6, 'ROLE_INVENTORY_ADMIN')
 ON DUPLICATE KEY UPDATE name=VALUES(name);
 
 
@@ -23,7 +25,9 @@ INSERT INTO users (id, username, password, email, role_id, card_uid, created_at)
 (7, 'stud_amit', '$2a$10$8.uRq3GDG7aR.Wv/fP3A3ODpT0R4P7WupR2L/vQ5/5W5u1Xz1684G', 'amit.singh@iit.ac.in', 4, NULL, NOW()),
 (8, 'stud_neha', '$2a$10$8.uRq3GDG7aR.Wv/fP3A3ODpT0R4P7WupR2L/vQ5/5W5u1Xz1684G', 'neha.verma@iit.ac.in', 4, NULL, NOW()),
 (9, 'stud_vikram', '$2a$10$8.uRq3GDG7aR.Wv/fP3A3ODpT0R4P7WupR2L/vQ5/5W5u1Xz1684G', 'vikram.roy@iit.ac.in', 4, NULL, NOW()),
-(10, 'stud_sneha', '$2a$10$8.uRq3GDG7aR.Wv/fP3A3ODpT0R4P7WupR2L/vQ5/5W5u1Xz1684G', 'sneha.reddy@iit.ac.in', 4, NULL, NOW())
+(10, 'stud_sneha', '$2a$10$8.uRq3GDG7aR.Wv/fP3A3ODpT0R4P7WupR2L/vQ5/5W5u1Xz1684G', 'sneha.reddy@iit.ac.in', 4, NULL, NOW()),
+(11, 'lib_sharma', '$2a$10$8.uRq3GDG7aR.Wv/fP3A3ODpT0R4P7WupR2L/vQ5/5W5u1Xz1684G', 'sharma.lib@iit.ac.in', 5, 'CARD_LIBRARIAN', NOW()),
+(12, 'inv_admin', '$2a$10$8.uRq3GDG7aR.Wv/fP3A3ODpT0R4P7WupR2L/vQ5/5W5u1Xz1684G', 'inventory@iit.ac.in', 6, 'CARD_INVENTORY', NOW())
 ON DUPLICATE KEY UPDATE password=VALUES(password);
 
 
@@ -79,3 +83,24 @@ INSERT INTO activity_logs (id, user_id, action, details, ip_address, created_at)
 (2, 1, 'USER_LOGIN', 'Admin logged into the portal.', '192.168.1.10', NOW() - INTERVAL 2 DAY),
 (3, 7, 'USER_LOGIN', 'Student Amit Singh logged into the portal.', '192.168.1.15', NOW() - INTERVAL 1 DAY),
 (4, 4, 'USER_LOGIN', 'Professor Devendra Sharma logged into the portal.', '192.168.1.12', NOW() - INTERVAL 12 HOUR);
+
+
+-- 10. INSERT LIBRARIANS
+INSERT INTO librarians (id, user_id, name, employee_id, email, phone, created_at) VALUES
+(1, 11, 'Sharma Librariperson', 'LIB2026001', 'sharma.lib@iit.ac.in', '+91-9999999999', NOW())
+ON DUPLICATE KEY UPDATE name=VALUES(name);
+
+
+-- 11. INSERT BOOKS
+INSERT INTO books (id, isbn, title, author, publisher, copies_total, copies_available, location_shelf, created_at) VALUES
+(1, '978-0132350884', 'Clean Code', 'Robert C. Martin', 'Prentice Hall', 5, 5, 'Shelf A1', NOW()),
+(2, '978-0134685991', 'Effective Java', 'Joshua Bloch', 'Addison-Wesley', 3, 3, 'Shelf A2', NOW()),
+(3, '978-0201633610', 'Design Patterns', 'Erich Gamma', 'Addison-Wesley', 2, 2, 'Shelf B1', NOW())
+ON DUPLICATE KEY UPDATE title=VALUES(title);
+
+-- 12. INSERT INVENTORY ITEMS
+INSERT INTO inventory_items (id, sku, item_name, category, description, location, total_quantity, available_quantity, created_at) VALUES
+(1, 'IT-LAP-001', 'Dell Latitude 3420', 'IT', 'Standard issue laptop for staff', 'Admin Block Storage', 10, 10, NOW()),
+(2, 'FUR-CH-102', 'Ergonomic Office Chair', 'FURNITURE', 'Mesh back chair', 'Main Store Room', 50, 50, NOW()),
+(3, 'LAB-MIC-05', 'Olympus CX23 Microscope', 'LAB_EQUIPMENT', 'Binocular microscope for Bio Lab', 'Bio Lab 1', 15, 15, NOW())
+ON DUPLICATE KEY UPDATE item_name=VALUES(item_name);

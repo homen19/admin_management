@@ -15,8 +15,11 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -109,19 +112,18 @@ public class LeaveRequestController {
             return ResponseEntity.badRequest().body("File is empty!");
         }
         try {
-            File dir = new File(uploadDir);
-            if (!dir.exists()) {
-                dir.mkdirs();
-            }
+            Path dirPath = Paths.get(uploadDir).toAbsolutePath().normalize();
+            Files.createDirectories(dirPath);
             String filename = System.currentTimeMillis() + "_" + file.getOriginalFilename().replaceAll("\\s+", "_");
-            File dest = new File(dir, filename);
-            file.transferTo(dest);
+            Path targetLocation = dirPath.resolve(filename);
+            Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
             
             Map<String, String> response = new HashMap<>();
             response.put("url", "/uploads/" + filename);
             response.put("fileName", file.getOriginalFilename());
             return ResponseEntity.ok(response);
         } catch (IOException e) {
+            e.printStackTrace();
             return ResponseEntity.internalServerError().body("Failed to upload file: " + e.getMessage());
         }
     }

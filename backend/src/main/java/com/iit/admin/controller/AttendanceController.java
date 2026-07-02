@@ -77,4 +77,16 @@ public class AttendanceController {
         attendanceService.registerUserCard(userId, cardUid, userDetails.getUsername(), ipAddress);
         return ResponseEntity.ok("Card UID registered successfully for user.");
     }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<AttendanceDTO> updateAttendance(
+            @PathVariable Long id,
+            @Valid @RequestBody AttendanceDTO dto,
+            @AuthenticationPrincipal UserDetails userDetails,
+            HttpServletRequest request) {
+        String ipAddress = request.getRemoteAddr();
+        AttendanceDTO updated = attendanceService.updateAttendance(id, dto, userDetails.getUsername(), ipAddress);
+        return ResponseEntity.ok(updated);
+    }
 }

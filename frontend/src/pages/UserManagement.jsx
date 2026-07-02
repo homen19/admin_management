@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { 
-  Search, 
-  UserPlus, 
-  KeyRound, 
-  Trash2, 
-  ChevronLeft, 
-  ChevronRight, 
-  X, 
+import {
+  Search,
+  UserPlus,
+  KeyRound,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+  X,
   AlertCircle,
   CheckCircle2,
   UserCheck
@@ -20,17 +20,17 @@ const UserManagement = () => {
   const [loading, setLoading] = useState(true);
   const [totalUsers, setTotalUsers] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
-  
+
   // Filters
   const [page, setPage] = useState(0);
   const [size] = useState(10);
   const [search, setSearch] = useState('');
-  
+
   // Modals
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
-  
+
   // Alert/Notification State
   const [message, setMessage] = useState({ type: '', text: '' });
 
@@ -52,10 +52,12 @@ const UserManagement = () => {
   const [resetPassword, setResetPassword] = useState('');
 
   const roles = [
-    { value: 'ROLE_ADMIN', label: 'Administrator' },
-    { value: 'ROLE_STAFF', label: 'Office Staff' },
-    { value: 'ROLE_FACULTY', label: 'Faculty' },
-    { value: 'ROLE_STUDENT', label: 'Student' }
+    { value: 'ROLE_ADMIN',    label: 'Administrator'     },
+    { value: 'ROLE_STAFF',    label: 'Office Staff'      },
+    { value: 'ROLE_FACULTY',  label: 'Faculty'           },
+    { value: 'ROLE_STUDENT',  label: 'Student'           },
+    { value: 'ROLE_FINANCE',  label: 'Finance Officer'   },
+    { value: 'ROLE_INVENTORY_ADMIN', label: 'Inventory Admin' },
   ];
 
   const departments = [
@@ -185,6 +187,8 @@ const UserManagement = () => {
         return 'bg-indigo-100 text-indigo-800 border-indigo-200';
       case 'ROLE_STUDENT':
         return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+      case 'ROLE_FINANCE':
+        return 'bg-teal-100 text-teal-800 border-teal-200';
       default:
         return 'bg-slate-100 text-slate-800 border-slate-200';
     }
@@ -194,11 +198,10 @@ const UserManagement = () => {
     <div className="space-y-6">
       {/* Alert Notification */}
       {message.text && (
-        <div className={`p-4 rounded-xl flex items-start gap-3 border animate-fade-in ${
-          message.type === 'success' 
-            ? 'bg-emerald-50 border-emerald-200 text-emerald-800' 
+        <div className={`p-4 rounded-xl flex items-start gap-3 border animate-fade-in ${message.type === 'success'
+            ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
             : 'bg-rose-50 border-rose-200 text-rose-800'
-        }`}>
+          }`}>
           {message.type === 'success' ? <CheckCircle2 size={18} className="shrink-0 mt-0.5" /> : <AlertCircle size={18} className="shrink-0 mt-0.5" />}
           <span>{message.text}</span>
         </div>
@@ -328,7 +331,7 @@ const UserManagement = () => {
             {/* Header */}
             <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-3xl">
               <h3 className="font-bold text-slate-800 font-outfit text-lg">Add New User Account</h3>
-              <button 
+              <button
                 onClick={() => setIsAddModalOpen(false)}
                 className="p-1 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-slate-400 hover:text-slate-600 transition-colors"
               >
@@ -522,7 +525,7 @@ const UserManagement = () => {
                 <KeyRound size={18} className="text-primary-600" />
                 <span>Reset User Password</span>
               </h3>
-              <button 
+              <button
                 onClick={() => setIsPasswordModalOpen(false)}
                 className="p-1 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-slate-400 hover:text-slate-600 transition-colors"
               >

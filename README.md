@@ -101,7 +101,7 @@ IIT/
     ```
 
 
-The backend server will run at: **`http://localhost:8080`**.
+The backend server will run at: **`http://localhost:8082`**.
 
 ---
 
@@ -152,4 +152,4 @@ All seeded accounts share the default password: **`password`** (BCrypt-hashed).
 
 Import the file: `postman/IIT_Admin_Office_System.postman_collection.json` into Postman.
 *   The collection includes tests that automatically capture the JWT token upon calling **User Login** and load it into global headers for all other requests.
-*   Configure the postman environment variables `base_url` to point to `http://localhost:8080`.
+*   Configure the postman environment variables `base_url` to point to `http://localhost:8082`.

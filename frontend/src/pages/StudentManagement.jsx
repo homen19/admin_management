@@ -10,7 +10,10 @@ import {
   ChevronRight, 
   X, 
   AlertCircle,
-  CheckCircle2
+  CheckCircle2,
+  FileText,
+  Download,
+  Mail
 } from 'lucide-react';
 
 const StudentManagement = () => {
@@ -29,7 +32,9 @@ const StudentManagement = () => {
   // Modals
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [currentStudent, setCurrentStudent] = useState(null);
+  const [newStudentDetails, setNewStudentDetails] = useState(null);
   
   // Alert/Notification State
   const [message, setMessage] = useState({ type: '', text: '' });
@@ -122,16 +127,46 @@ const StudentManagement = () => {
     setIsEditModalOpen(true);
   };
 
+  const handleDownloadAdmissionPDF = async (studentId, studentName) => {
+    try {
+      const response = await api.get(`/api/students/${studentId}/admission-pdf`, {
+        responseType: 'blob'
+      });
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.download = `student_admission_${studentName.replace(/\s+/g, '_')}.pdf`;
+      link.click();
+      showAlert('success', 'Admission PDF downloaded successfully.');
+    } catch (err) {
+      showAlert('error', 'Failed to download admission PDF.');
+    }
+  };
+
+  const handleSendAdmissionEmail = async (studentId) => {
+    try {
+      await api.post(`/api/students/${studentId}/send-admission-email`);
+      showAlert('success', 'Admission slip email sent to student successfully.');
+    } catch (err) {
+      showAlert('error', 'Failed to send admission email.');
+    }
+  };
+
   const handleAddSubmit = async (e) => {
     e.preventDefault();
     try {
       // Register new student user
-      await registerUser({
+      const response = await registerUser({
         ...formData,
         role: 'ROLE_STUDENT'
       });
       setIsAddModalOpen(false);
-      showAlert('success', 'Student account and profile created successfully.');
+      setNewStudentDetails({
+        studentId: response.studentId,
+        name: formData.name,
+        rollNumber: formData.rollNumber
+      });
+      setIsSuccessModalOpen(true);
       fetchStudents();
     } catch (err) {
       showAlert('error', typeof err === 'string' ? err : 'Validation failed. Check inputs.');
@@ -209,7 +244,7 @@ const StudentManagement = () => {
           className="shrink-0 px-4 py-2.5 bg-primary-600 hover:bg-primary-500 text-white font-semibold text-sm rounded-xl transition-colors flex items-center justify-center gap-2 shadow-md shadow-primary-950/10 active:scale-[0.98]"
         >
           <UserPlus size={16} />
-          <span>Add Student</span>
+          <span>New Student Admission</span>
         </button>
       </div>
 
@@ -255,6 +290,20 @@ const StudentManagement = () => {
                         title="Edit profile"
                       >
                         <Edit2 size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleDownloadAdmissionPDF(student.id, student.name)}
+                        className="p-1.5 hover:bg-blue-50 rounded-lg text-slate-500 hover:text-blue-600 transition-colors"
+                        title="Download Admission PDF"
+                      >
+                        <Download size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleSendAdmissionEmail(student.id)}
+                        className="p-1.5 hover:bg-emerald-50 rounded-lg text-slate-500 hover:text-emerald-600 transition-colors"
+                        title="Email Admission documents"
+                      >
+                        <Mail size={16} />
                       </button>
                       <button
                         onClick={() => handleDelete(student.id)}
@@ -312,7 +361,7 @@ const StudentManagement = () => {
           <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-xl flex flex-col max-h-[90vh]">
             {/* Header */}
             <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-3xl">
-              <h3 className="font-bold text-slate-800 font-outfit text-lg">Add New Student Profile</h3>
+              <h3 className="font-bold text-slate-800 font-outfit text-lg">Student Admission Form</h3>
               <button 
                 onClick={() => setIsAddModalOpen(false)}
                 className="p-1 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-slate-400 hover:text-slate-600 transition-colors"
@@ -453,7 +502,7 @@ const StudentManagement = () => {
                   type="submit"
                   className="px-4 py-2 bg-primary-600 hover:bg-primary-500 text-white rounded-xl text-sm font-semibold transition-colors shadow-md"
                 >
-                  Create Account
+                  Process Admission
                 </button>
               </div>
             </form>
@@ -566,6 +615,62 @@ const StudentManagement = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* SUCCESS ADMISSION MODAL */}
+      {/* ============================================================== */}
+      {isSuccessModalOpen && newStudentDetails && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-md flex flex-col p-6 space-y-6 text-center">
+            <div className="mx-auto inline-flex p-3 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100 animate-bounce">
+              <CheckCircle2 size={36} />
+            </div>
+            
+            <div className="space-y-2">
+              <h3 className="font-bold text-slate-800 font-outfit text-xl">Admission Completed!</h3>
+              <p className="text-sm text-slate-500">
+                Student <span className="font-semibold text-slate-700">{newStudentDetails.name}</span> has been admitted successfully.
+              </p>
+              <div className="inline-block bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-xs font-mono text-slate-600">
+                Roll Number: <span className="font-bold text-slate-800">{newStudentDetails.rollNumber}</span>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => handleDownloadAdmissionPDF(newStudentDetails.studentId, newStudentDetails.name)}
+                className="w-full px-4 py-2.5 bg-primary-900 hover:bg-primary-800 text-amber-400 font-bold text-sm rounded-xl transition-colors flex items-center justify-center gap-2 border border-slate-700 shadow-sm"
+              >
+                <Download size={16} />
+                <span>Download Admission PDF</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleSendAdmissionEmail(newStudentDetails.studentId)}
+                className="w-full px-4 py-2.5 bg-emerald-600 hover:bg-emerald-550 text-white font-semibold text-sm rounded-xl transition-colors flex items-center justify-center gap-2 shadow-sm"
+              >
+                <Mail size={16} />
+                <span>Email Admission Slip</span>
+              </button>
+            </div>
+
+            <div className="pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsSuccessModalOpen(false);
+                  setNewStudentDetails(null);
+                }}
+                className="w-full px-4 py-2 border border-slate-200 rounded-xl text-slate-500 hover:bg-slate-50 text-sm font-semibold transition-colors"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

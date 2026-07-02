@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.iit.attendance.app-mergeDebugResources-55:/values-fi/values-fi.xml",
+            "outputFile": "com.iit.cliqchat.app-mergeDebugResources-55:/values-fi/values-fi.xml",
             "map": [
                 {
                     "source": "C:\\Users\\homen\\.gradle\\caches\\8.10.2\\transforms\\5703b84491084b503cf42daaede9ab9e\\transformed\\core-1.12.0\\res\\values-fi\\values-fi.xml",

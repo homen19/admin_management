@@ -13,8 +13,10 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
     Optional<Student> findByRollNumber(String rollNumber);
     Optional<Student> findByEmail(String email);
     
+    java.util.List<Student> findByDepartmentIdAndSemester(Long departmentId, Integer semester);
+    
     @Query("SELECT s FROM Student s WHERE " +
-           "(:dept IS NULL OR :dept = '' OR s.department = :dept) AND " +
+           "(:dept IS NULL OR :dept = '' OR s.department.code = :dept OR s.department.name = :dept) AND " +
            "(:query IS NULL OR :query = '' OR LOWER(s.name) LIKE LOWER(CONCAT('%', :query, '%')) " +
            "OR LOWER(s.rollNumber) LIKE LOWER(CONCAT('%', :query, '%')) " +
            "OR LOWER(s.email) LIKE LOWER(CONCAT('%', :query, '%')))")

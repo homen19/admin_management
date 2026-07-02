@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.iit.attendance.app-mergeDebugResources-55:/values-km/values-km.xml",
+            "outputFile": "com.iit.cliqchat.app-mergeDebugResources-55:/values-km/values-km.xml",
             "map": [
                 {
                     "source": "C:\\Users\\homen\\.gradle\\caches\\8.10.2\\transforms\\9ba95df6287885fb5c03143b07c15eea\\transformed\\jetified-material3-release\\res\\values-km\\values-km.xml",

@@ -15,12 +15,25 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import com.iit.admin.service.ReportService;
+import com.iit.admin.service.EmailService;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/students")
 public class StudentController {
 
     @Autowired
     private StudentService studentService;
+
+    @Autowired
+    private ReportService reportService;
+
+    @Autowired
+    private EmailService emailService;
 
     @GetMapping
     public ResponseEntity<Page<StudentDTO>> getAllStudents(
@@ -70,5 +83,31 @@ public class StudentController {
         String ipAddress = request.getRemoteAddr();
         studentService.deleteStudent(id, userDetails.getUsername(), ipAddress);
         return ResponseEntity.ok("Student deleted successfully.");
+    }
+
+    @GetMapping("/{id}/admission-pdf")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
+    public void downloadAdmissionPDF(@PathVariable Long id, HttpServletResponse response) throws IOException {
+        response.setContentType("application/pdf");
+        response.setHeader("Content-Disposition", "attachment; filename=student_admission_" + id + ".pdf");
+        reportService.exportStudentAdmissionPDF(id, response.getOutputStream());
+    }
+
+    @PostMapping("/{id}/send-admission-email")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
+    public ResponseEntity<?> sendAdmissionEmail(@PathVariable Long id) {
+        StudentDTO student = studentService.getStudentById(id);
+        
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        reportService.exportStudentAdmissionPDF(id, baos);
+        
+        emailService.sendAdmissionEmailWithAttachment(
+                student.getEmail(),
+                student.getName(),
+                student.getRollNumber(),
+                baos.toByteArray()
+        );
+        
+        return ResponseEntity.ok(Map.of("message", "Admission confirmation email sent to student successfully."));
     }
 }

@@ -2,6 +2,7 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
+import FloatingChat from '../components/chat/FloatingChat';
 
 const DashboardLayout = ({ title }) => {
   return (
@@ -19,6 +20,9 @@ const DashboardLayout = ({ title }) => {
           <Outlet />
         </main>
       </div>
+
+      {/* Floating Chat — visible on every page */}
+      <FloatingChat />
     </div>
   );
 };
