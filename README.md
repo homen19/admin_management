@@ -36,30 +36,145 @@ It provides an end-to-end ERP solution featuring role-based access control, acad
 
 ---
 
-## 🏗️ System Architecture
+## 🏗️ System Architecture & Design
+
+### 1. High-Level System Architecture (C4 Model)
+The platform follows a layered, decoupled architecture separating the presentation layers (Web & Mobile) from the core business logic and persistent storage.
 
 ```mermaid
 graph TD
-    subgraph Mobile Android App
-        A[Android UI: Compose] -->|ViewModels| B[Clean Domain Usecases]
-        B -->|Retrofit/WebSocket| C[Data Repositories]
+    %% Define styles
+    classDef client fill:#e1f5fe,stroke:#03a9f4,stroke-width:2px;
+    classDef api fill:#fff3e0,stroke:#ff9800,stroke-width:2px;
+    classDef service fill:#e8f5e9,stroke:#4caf50,stroke-width:2px;
+    classDef data fill:#fce4ec,stroke:#e91e63,stroke-width:2px;
+    classDef external fill:#f3e5f5,stroke:#9c27b0,stroke-width:2px;
+
+    %% Presentation Layer
+    subgraph Presentation Layer
+        Web["Vite React Web Portal<br/>(Tailwind, Axios)"]:::client
+        Mobile["Android Native App<br/>(Jetpack Compose, MVVM)"]:::client
     end
 
-    subgraph Backend Services
-        D[Vite React Web Portal] -->|HTTP REST / WebSocket| E(Spring Boot Controllers)
-        C -->|POST /api/attendance| E
-        C -.->|WSS Chat| E
-        
-        E --> F[Core Services: Attendance, Finance, Hostel, etc.]
-        F -->|Geofencing Check| G{Within 300m Campus?}
-        G -->|Yes| H[Save Punch Record]
-        G -->|No| I[Reject Punch]
-        H --> J[(MySQL Database)]
-        
-        E --> L[LeaveRequestService]
-        L -->|Approve/Reject| M[Save Decision]
-        M -->|Trigger Email| N[EmailService]
-        N -->|SMTP Protocol| O[SMTP Server]
+    %% API / Transport Layer
+    subgraph API & Security Layer
+        JWTFilter["Spring Security Filter Chain<br/>(JWT Auth Validation)"]:::api
+        RestAPI["Spring Boot REST Controllers<br/>(@RestController)"]:::api
+        WSEndpoint["WebSocket STOMP Broker<br/>(Real-time Chat)"]:::api
+    end
+
+    %% Service / Business Logic Layer
+    subgraph Core Business Services Layer
+        AuthSvc["Identity & Auth Service"]:::service
+        AcadSvc["Academics & Attendance"]:::service
+        FinSvc["Finance & Inventory"]:::service
+        ChatSvc["Chat & Kanban"]:::service
+        HostelLibSvc["Hostel & Library"]:::service
+    end
+
+    %% Data Access Layer
+    subgraph Data Access Layer
+        JPA["Spring Data JPA Repositories<br/>(Hibernate ORM)"]:::data
+    end
+
+    %% Database
+    subgraph Persistent Storage
+        MySQL[("MySQL 8.x Relational DB<br/>(Stored Procs & Triggers)")]:::data
+    end
+
+    %% External Systems
+    subgraph External Integrations
+        SMTP["SMTP Server<br/>(Email Notifications)"]:::external
+        Geofence["Location Services<br/>(GPS Geofencing)"]:::external
+    end
+
+    %% Relationships - Flow
+    Web -->|HTTP Requests| JWTFilter
+    Web -.->|STOMP over WSS| WSEndpoint
+    Mobile -->|HTTP Requests| JWTFilter
+    Mobile -.->|STOMP over WSS| WSEndpoint
+    Mobile -->|GPS Coordinates| Geofence
+
+    JWTFilter -->|Authenticated| RestAPI
+    
+    RestAPI --> AuthSvc
+    RestAPI --> AcadSvc
+    RestAPI --> FinSvc
+    RestAPI --> ChatSvc
+    RestAPI --> HostelLibSvc
+
+    WSEndpoint <--> ChatSvc
+
+    AuthSvc --> JPA
+    AcadSvc --> JPA
+    FinSvc --> JPA
+    ChatSvc --> JPA
+    HostelLibSvc --> JPA
+
+    AcadSvc -.->|Trigger Emails| SMTP
+    HostelLibSvc -.->|Trigger Emails| SMTP
+
+    JPA <--> MySQL
+```
+
+### 2. Core Entity-Relationship (ER) Overview
+The database schema is highly normalized. Below is a simplified view of the core domain entities and their relationships.
+
+```mermaid
+erDiagram
+    USER ||--o{ STUDENT : "is a"
+    USER ||--o{ FACULTY : "is a"
+    USER ||--o{ STAFF : "is a"
+    
+    DEPARTMENT ||--o{ STUDENT : "enrolls"
+    DEPARTMENT ||--o{ FACULTY : "employs"
+    DEPARTMENT ||--o| DEPARTMENT_BUDGET : "has"
+    
+    COURSE ||--o{ CLASS_SESSION : "schedules"
+    COURSE ||--o{ SYLLABUS : "contains"
+    FACULTY ||--o{ COURSE : "teaches"
+    STUDENT ||--o{ CLASS_ATTENDANCE : "marks"
+    CLASS_SESSION ||--o{ CLASS_ATTENDANCE : "records"
+    
+    STUDENT ||--o{ LEAVE_REQUEST : "submits"
+    STUDENT ||--o{ COMPLAINT : "raises"
+    STAFF ||--o{ COMPLAINT : "resolves"
+    
+    STUDENT ||--o{ HOSTEL_REQUEST : "applies"
+    HOSTEL_ROOM ||--o{ HOSTEL_ALLOTMENT : "assigned to"
+    STUDENT ||--o{ FEE_PAYMENT : "pays"
+```
+
+### 3. Workflow: Mobile Geofenced Attendance
+A specialized workflow utilizing the mobile app to ensure students are physically present on campus before recording attendance.
+
+```mermaid
+sequenceDiagram
+    participant Student as Android App (Student)
+    participant GPS as Device Location Services
+    participant API as Spring Boot API
+    participant DB as MySQL DB
+
+    Student->>API: GET /api/sessions/active (Get current classes)
+    API-->>Student: Return active session details
+    
+    Student->>GPS: Request Current Lat/Lng
+    GPS-->>Student: Return Lat/Lng coords
+    
+    Student->>Student: Calculate distance to Campus Center (Haversine)
+    
+    alt Distance > 300 meters
+        Student-->>Student: Show UI Error "Not inside campus bounds"
+    else Distance <= 300 meters
+        Student->>API: POST /api/attendance/punch (SessionID, Lat, Lng)
+        API->>API: Server-side Geofence Validation
+        alt Valid Location
+            API->>DB: Save Attendance Record
+            DB-->>API: Success
+            API-->>Student: 200 OK - Attendance Marked
+        else Invalid Location
+            API-->>Student: 403 Forbidden - Geo-validation failed
+        end
     end
 ```
 
